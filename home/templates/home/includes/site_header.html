@@ -1,0 +1,16 @@
+{% load static %}
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="LumiX AI home"><img class="brand-logo" src="{% static 'home/images/lumix-ai-logo-transparent.png' %}" alt="LumiX AI" width="112" height="76"></a>
+      <span class="brand-descriptor">AI education<br>for ages 6–16</span>
+      <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span></button>
+      <nav class="main-nav" id="main-navigation" aria-label="Main navigation">
+        <a href="/our-approach/" {% if request.path == "/our-approach/" %}aria-current="page"{% endif %}>Our approach</a>
+        <a href="/courses/" {% if request.path == "/courses/" %}aria-current="page"{% endif %}>Courses</a>
+        <a href="/for-parents/" {% if request.path == "/for-parents/" %}aria-current="page"{% endif %}>For parents</a>
+        <a href="/contact/" {% if request.path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
+        <a class="nav-cta" href="/for-families/" {% if request.path == "/for-families/" %}aria-current="page"{% endif %}>For families <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>

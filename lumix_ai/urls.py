@@ -1,12 +1,18 @@
 from django.conf import settings
 from django.urls import include, path
 from django.contrib import admin
+from django.views.generic import TemplateView
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [
+    path("our-approach/", TemplateView.as_view(template_name="home/approach_page.html"), name="approach"),
+    path("courses/", TemplateView.as_view(template_name="home/courses_page.html"), name="courses"),
+    path("for-parents/", TemplateView.as_view(template_name="home/parents_page.html"), name="parents"),
+    path("for-families/", TemplateView.as_view(template_name="home/families_page.html"), name="families"),
+    path("contact/", TemplateView.as_view(template_name="home/contact_page.html"), name="contact"),
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
