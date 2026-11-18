@@ -1,0 +1,16 @@
+{
+	email {$CADDY_ACME_EMAIL}
+}
+
+{$CADDY_SITE_HOSTS} {
+	encode zstd gzip
+
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
+	handle {
+		reverse_proxy web:8000
+	}
+}

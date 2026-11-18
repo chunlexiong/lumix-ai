@@ -1,0 +1,55 @@
+name: lumix-ai-dev
+
+x-django-environment: &django-environment
+  DJANGO_SETTINGS_MODULE: lumix_ai.settings.dev
+  DJANGO_SECRET_KEY: ${DOCKER_SECRET_KEY:-local-development-only-change-me}
+  DJANGO_DEBUG: ${DOCKER_DJANGO_DEBUG:-true}
+  DJANGO_ALLOWED_HOSTS: ${DOCKER_ALLOWED_HOSTS:-localhost,127.0.0.1,web}
+  CSRF_TRUSTED_ORIGINS: ${DOCKER_CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+  CSRF_COOKIE_SECURE: ${DOCKER_CSRF_COOKIE_SECURE:-false}
+  SESSION_COOKIE_SECURE: ${DOCKER_SESSION_COOKIE_SECURE:-false}
+  SECURE_CONTENT_TYPE_NOSNIFF: ${DOCKER_SECURE_CONTENT_TYPE_NOSNIFF:-true}
+  SESSION_COOKIE_AGE: ${DOCKER_SESSION_COOKIE_AGE:-1209600}
+  SESSION_SAVE_EVERY_REQUEST: ${DOCKER_SESSION_SAVE_EVERY_REQUEST:-false}
+  SECURE_PROXY_SSL_HEADER: ${DOCKER_SECURE_PROXY_SSL_HEADER:-}
+  USE_X_FORWARDED_HOST: ${DOCKER_USE_X_FORWARDED_HOST:-false}
+  POSTGRES_DB: ${DOCKER_DB_NAME:-lumix_ai}
+  POSTGRES_USER: ${DOCKER_DB_USER:-lumix_ai_user}
+  POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:-local-development-password}
+  POSTGRES_HOST: ${DOCKER_DB_HOST:-db}
+  POSTGRES_PORT: ${DOCKER_DB_PORT:-5432}
+  MEDIA_ROOT: /app/media
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    environment: *django-environment
+    ports:
+      - "127.0.0.1:${DOCKER_WEB_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DOCKER_DB_NAME:-lumix_ai}
+      POSTGRES_USER: ${DOCKER_DB_USER:-lumix_ai_user}
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:-local-development-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  media_data:

@@ -1,0 +1,79 @@
+name: lumix-ai-prod
+
+x-django-environment: &django-environment
+  DJANGO_SETTINGS_MODULE: lumix_ai.settings.production
+  DJANGO_SECRET_KEY: ${DOCKER_SECRET_KEY:?Set DOCKER_SECRET_KEY in .env.prod}
+  DJANGO_DEBUG: ${DOCKER_DJANGO_DEBUG:-false}
+  DJANGO_ALLOWED_HOSTS: ${DOCKER_ALLOWED_HOSTS:?Set DOCKER_ALLOWED_HOSTS in .env.prod}
+  CSRF_TRUSTED_ORIGINS: ${DOCKER_CSRF_TRUSTED_ORIGINS:-}
+  CSRF_COOKIE_SECURE: ${DOCKER_CSRF_COOKIE_SECURE:-true}
+  SESSION_COOKIE_SECURE: ${DOCKER_SESSION_COOKIE_SECURE:-true}
+  SECURE_CONTENT_TYPE_NOSNIFF: ${DOCKER_SECURE_CONTENT_TYPE_NOSNIFF:-true}
+  SESSION_COOKIE_AGE: ${DOCKER_SESSION_COOKIE_AGE:-1209600}
+  SESSION_SAVE_EVERY_REQUEST: ${DOCKER_SESSION_SAVE_EVERY_REQUEST:-true}
+  SECURE_PROXY_SSL_HEADER: ${DOCKER_SECURE_PROXY_SSL_HEADER:-HTTP_X_FORWARDED_PROTO,https}
+  USE_X_FORWARDED_HOST: ${DOCKER_USE_X_FORWARDED_HOST:-true}
+  POSTGRES_DB: ${DOCKER_DB_NAME:?Set DOCKER_DB_NAME in .env.prod}
+  POSTGRES_USER: ${DOCKER_DB_USER:?Set DOCKER_DB_USER in .env.prod}
+  POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD in .env.prod}
+  POSTGRES_HOST: ${DOCKER_DB_HOST:-db}
+  POSTGRES_PORT: ${DOCKER_DB_PORT:-5432}
+  MEDIA_ROOT: /app/media
+  STATIC_ROOT: /app/staticfiles
+
+services:
+  web:
+    build: .
+    command:
+      - gunicorn
+      - lumix_ai.wsgi:application
+      - --bind
+      - 0.0.0.0:8000
+      - --workers
+      - ${DOCKER_GUNICORN_WORKERS:-2}
+    restart: unless-stopped
+    environment: *django-environment
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL:?Set CADDY_ACME_EMAIL in .env.prod}
+      CADDY_SITE_HOSTS: ${CADDY_SITE_HOSTS:?Set CADDY_SITE_HOSTS in .env.prod}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media_data:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DOCKER_DB_NAME:?Set DOCKER_DB_NAME in .env.prod}
+      POSTGRES_USER: ${DOCKER_DB_USER:?Set DOCKER_DB_USER in .env.prod}
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:?Set DOCKER_DB_PASSWORD in .env.prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  media_data:
+  caddy_data:
+  caddy_config:
