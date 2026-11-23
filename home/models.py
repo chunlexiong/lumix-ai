@@ -1,6 +1,12 @@
+import uuid
+
+from django.conf import settings
 from django.db import models
 from wagtail.admin.panels import FieldPanel
-from wagtail.fields import RichTextField
+from wagtail.fields import RichTextField, StreamField
+from wagtail import blocks
+from wagtail.images.blocks import ImageChooserBlock
+from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.models import Page
 
 
@@ -32,3 +38,92 @@ class HomePage(Page):
     ]
 
     max_count = 1
+
+
+class StudentLifePage(Page):
+    """A gallery editors can maintain using Wagtail image and document libraries."""
+
+    introduction = models.TextField(
+        default="Big discoveries. Creative breakthroughs. The moments that make learning their own."
+    )
+    gallery = StreamField([
+        ("photo", blocks.StructBlock([
+            ("title", blocks.CharBlock(max_length=100)),
+            ("image", ImageChooserBlock()),
+            ("alt_text", blocks.CharBlock(max_length=200, help_text="Describe the image for visitors using screen readers.")),
+            ("caption", blocks.TextBlock(required=False, max_length=400)),
+        ], icon="image", label="Class photo")),
+        ("video", blocks.StructBlock([
+            ("title", blocks.CharBlock(max_length=100)),
+            ("poster", ImageChooserBlock()),
+            ("video", DocumentChooserBlock(help_text="Upload an MP4 video for reliable browser playback.")),
+            ("caption", blocks.TextBlock(required=False, max_length=400)),
+            ("transcript", blocks.TextBlock(required=False, help_text="Include a text version of spoken content.")),
+            ("captions_file", DocumentChooserBlock(required=False, help_text="Optional WebVTT (.vtt) captions file.")),
+        ], icon="media", label="Class video")),
+        ("project", blocks.StructBlock([
+            ("title", blocks.CharBlock(max_length=100)),
+            ("image", ImageChooserBlock()),
+            ("alt_text", blocks.CharBlock(max_length=200)),
+            ("caption", blocks.TextBlock(required=False, max_length=400)),
+            ("project_url", blocks.URLBlock(required=False, help_text="Optional public project link. Do not include private student information.")),
+        ], icon="code", label="Student project")),
+    ], blank=True, help_text="Add parent/carer-approved media. Avoid student full names and private details. Publish the page to make changes visible.")
+
+    content_panels = Page.content_panels + [FieldPanel("introduction"), FieldPanel("gallery")]
+    template = "home/student_life_page.html"
+    max_count = 1
+    parent_page_types = ["home.HomePage"]
+    subpage_types = []
+
+
+class Student(models.Model):
+    parent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="students")
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return self.name
+
+
+class Enrolment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Awaiting payment"
+        PREVIEW = "preview", "Preview complete"
+        TESTED = "tested", "Test payment complete"
+        PAID = "paid", "Paid"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="enrolments")
+    program_slug = models.SlugField()
+    age_group = models.CharField(max_length=12)
+    session_key = models.SlugField()
+    program_title = models.CharField(max_length=100)
+    class_title = models.CharField(max_length=100)
+    schedule = models.CharField(max_length=150)
+    session_count = models.PositiveSmallIntegerField()
+    amount_cents = models.PositiveIntegerField()
+    status = models.CharField(max_length=12, choices=Status, default=Status.PENDING)
+    stripe_session_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    stripe_mode = models.CharField(max_length=4, blank=True)
+    checkout_revision = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "program_slug", "age_group", "session_key"],
+                name="unique_student_class_session",
+            ),
+            models.CheckConstraint(condition=models.Q(amount_cents__gt=0), name="enrolment_positive_amount"),
+        ]
+
+    @property
+    def total(self):
+        if self.amount_cents % 100 == 0:
+            return f"${self.amount_cents // 100:,}"
+        return f"${self.amount_cents / 100:,.2f}"

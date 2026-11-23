@@ -1,15 +1,167 @@
-{% extends "base.html" %}{% load static wagtailcore_tags %}
-{% block title %}Our approach{% endblock %}{% block content %}<div class="site-shell routed-page">{% include "home/includes/site_header.html" %}<main>
-<section class="page-intro"><a href="/" class="page-breadcrumb">Home <span aria-hidden="true">/</span> Our approach</a><span class="section-label">THE LUMIX WAY</span><h1>Curious minds.<br>Confident creators.</h1><p>Strong foundations, purposeful projects and room to ask the wonderfully unexpected.</p></section>
-<section class="belief-strip" id="approach">
-      <div class="belief-heading"><span class="section-label">A NEW KIND OF AI EDUCATION</span><h2>Less passive scrolling.<br><em>More purposeful creating.</em></h2></div>
-      <div class="belief-copy"><p>AI is a powerful tool. Knowing what to do with it is the real skill. Students investigate how it works, put its answers to the test and create projects with purpose. Teachers guide the learning; children shape the ideas.</p><a href="/our-approach/#how-it-works" class="arrow-link">Get to know our approach <span>↗</span></a></div>
-      
-    </section><section class="method-section" id="how-it-works">
-      <div class="method-heading"><div><span class="section-label light-label">THE LUMIX WAY</span><h2>Curiosity in.<br><em>Creators out.</em></h2></div><p>Learn the foundations, take creative risks and make something that works—with teachers guiding every stage.</p></div>
-      <div class="method-grid">
-        <article class="method-card"><span class="method-number">01 / NOTICE</span><div class="method-icon icon-orbit"><span>✦</span><i></i></div><h3>Understand AI</h3><p>Look under the hood: how AI learns, what it notices and why it can be confidently wrong.</p><span class="card-foot">ASK BETTER QUESTIONS </span></article>
-        <article class="method-card method-card-featured"><span class="method-number">02 / IMAGINE</span><div class="method-icon icon-flower"><span>✳</span></div><h3>Think creatively</h3><p>Find a challenge worth solving. Explore possibilities and make the idea your own.</p><span class="card-foot">MAKE AN IDEA YOURS </span></article>
-        <article class="method-card"><span class="method-number">03 / MAKE</span><div class="method-icon icon-spark"><span>↗</span></div><h3>Create a working project</h3><p>Direct the AI, shape the code and put your project through its paces. Bugs become clues.</p><span class="card-foot">CREATE WITH CONFIDENCE </span></article>
+{% extends 'base.html' %}
+{% load static program_tags %}
+{% block title %}Our approach to teaching AI{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'home/css/approach.css' %}?v=16">{% endblock %}
+{% block content %}
+{% include 'home/includes/site_header.html' %}
+<main id="main-content" class="approach-page">
+  <section class="page-hero page-hero-dark approach-hero" id="approach" aria-labelledby="approach-title">
+    <div class="container">
+      {% include 'home/includes/hero_breadcrumb.html' with current='Our approach' only %}
+      <div class="page-hero-grid">
+        <div>
+          <h1 class="page-hero-title" id="approach-title">Learn how AI works. <em>Build something of your own.</em></h1>
+          <p class="page-hero-lead">In teacher-guided projects, students choose a problem, explore what AI can do and test the solutions they create. They learn to explain their decisions and judge when an AI answer needs a second look.</p>
+        </div>
+        <figure class="page-hero-illustration">
+          <img src="{% static 'home/images/approach-ai-studio-hero.webp' %}" alt="Illustration of students and their teacher reviewing an AI model that detects pedestrians and cyclists at a crossing" width="1586" height="992" fetchpriority="high">
+        </figure>
       </div>
-    </section><section class="skills-section" id="skills" aria-labelledby="skills-title"><div class="skills-heading"><div><span class="section-label">SKILLS FOR WHAT’S NEXT</span><h2 id="skills-title">Create with AI.<br><em>Lead with confidence.</em></h2></div><p>Understand the intelligence. Build the experience. Be the person with the next great idea.</p></div><div class="skills-grid"><article class="skill-group skills-ai"><span class="skill-kicker">UNDERSTAND &amp; DIRECT</span><h3>AI skills</h3><p>Give AI clear direction. Spot the weak answers. Keep your own brain in charge.</p><ul><li>AI fluency &amp; responsible use</li><li>Prompt engineering — clear AI instructions</li><li>Text, image &amp; voice AI</li><li>Data, examples &amp; model training</li><li>Patterns, predictions &amp; AI mistakes</li><li>AI inputs, outputs &amp; responses</li><li>AI evaluation — accuracy, fairness &amp; trust</li><li>AI-guided research &amp; idea development</li></ul></article><article class="skill-group skills-tech"><span class="skill-kicker">DESIGN &amp; DEVELOP</span><h3>Coding &amp; digital skills</h3><p>From prompts to working features: learn the tools behind the screen.</p><ul><li>Vibe coding — AI-assisted coding</li><li>HTML &amp; CSS — page structure &amp; design</li><li>JavaScript — interactive features</li><li>Git — version control</li><li>Website design &amp; publishing</li><li>Decision rules &amp; computational thinking</li><li>Testing, debugging &amp; refinement</li><li>Connected features &amp; systems thinking</li></ul></article><article class="skill-group skills-leadership"><span class="skill-kicker">THINK &amp; COMMUNICATE</span><h3>Creative &amp; leadership skills</h3><p>Original ideas get stronger when you can explain them, challenge them and bring others along.</p><ul><li>Creativity &amp; ideation</li><li>Creative problem solving</li><li>Critical &amp; independent thinking</li><li>User needs &amp; solution design</li><li>Evidence-based decisions</li><li>Communication &amp; collaboration</li><li>Public speaking &amp; presentation</li><li>Confidence &amp; project ownership</li></ul></article></div><div class="skills-pathway-note"><strong>Age-appropriate depth. Skills that build over time.</strong><p>Ages 6–8 focus on guided AI prompts, patterns, decision rules and creative expression. Older groups progress to AI features, web coding, Git and deeper evaluation, according to the program. Term classes build depth over several weeks; holiday workshops focus on a three-day project.</p></div></section></main>{% include "home/includes/site_footer.html" %}</div>{% endblock %}
+    </div>
+  </section>
+
+  <section class="approach-section approach-method" id="how-it-works" aria-labelledby="approach-method-title">
+    <div class="container">
+      <div class="approach-section-heading approach-method-heading">
+        <h2 id="approach-method-title">From first prompt <em>to project demo</em></h2>
+        <p>With teacher guidance, students turn an idea into a simulator, website or digital prototype they can explain and share.</p>
+      </div>
+      <ol class="approach-steps" role="list">
+        <li>
+          <span class="journey-step-icon" aria-hidden="true">{% icon 'scan-spark' %}</span>
+          <div>
+            <h3>Explore AI</h3>
+            <p>Try different prompts, compare AI’s answers and spot what needs checking.</p>
+          </div>
+        </li>
+        <li>
+          <span class="journey-step-icon" aria-hidden="true">{% icon 'design-sketch' %}</span>
+          <div>
+            <h3>Design a solution</h3>
+            <p>Pick a problem, identify who it affects and decide what the project should do.</p>
+          </div>
+        </li>
+        <li>
+          <span class="journey-step-icon" aria-hidden="true">{% icon 'sliders' %}</span>
+          <div>
+            <h3>Build and refine</h3>
+            <p>Use AI and coding tools suited to their age. Check how features respond and fix what doesn’t work.</p>
+          </div>
+        </li>
+        <li>
+          <span class="journey-step-icon" aria-hidden="true">{% icon 'microphone' %}</span>
+          <div>
+            <h3>Share the work</h3>
+            <p>Demo the project, explain a design choice and share what they’d improve next.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="approach-section approach-example" id="example-projects" aria-labelledby="approach-example-title">
+    <div class="container">
+      <div class="approach-section-heading">
+        <span class="section-label">Example projects</span>
+        <h2 id="approach-example-title">What students work on</h2>
+        <p>Two examples from our October holiday workshop and current Term 4 classes.</p>
+      </div>
+      <div class="approach-project-grid">
+        <article class="approach-project-card">
+          <img class="approach-project-image" src="{% static 'home/images/project-october-mars-rover.webp' %}" alt="October workshop illustration of a rover and solar-powered research station on Mars." width="1406" height="730" loading="lazy" decoding="async">
+          <div>
+            <p class="approach-project-program">October 2026 holiday workshop</p>
+            <h3>Mars AI Exploration Mission</h3>
+            <p>Students trained an AI model to tell rocks from power stations in a simulated Mars mission, then tested it on new pictures.</p>
+          </div>
+        </article>
+        <article class="approach-project-card">
+          <img class="approach-project-image" src="{% static 'home/images/project-term-four-solar-system.webp' %}" alt="Term 4 course illustration showing planets and orbit paths in the Solar System." width="1440" height="594" loading="lazy" decoding="async">
+          <div>
+            <p class="approach-project-program">Term 4 2026 · AI + Vibe Coding</p>
+            <h3>Interactive Solar System</h3>
+            <p>Students in the coding stream use AI-assisted coding to build a 3D Solar System and turn it into a website others can explore.</p>
+          </div>
+        </article>
+      </div>
+      <div class="approach-project-footer">
+        <p>Illustrations from our workshop and class materials.</p>
+        <a class="button button-primary" href="/student-life/">Explore Student Life {% icon 'arrow' %}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="approach-section approach-skills" id="skills" aria-labelledby="skills-title">
+    <div class="container">
+      <div class="approach-section-heading approach-skills-heading">
+        <h2 id="skills-title">Skills your child will learn</h2>
+        <p>Students learn to guide AI, build digital projects and explain their ideas. Skills and tools vary by age and class.</p>
+      </div>
+      <div class="approach-skills-grid">
+        <article class="approach-skill-card" id="skills-ai" aria-labelledby="skills-ai-title">
+          <header class="approach-skill-header">
+            <span aria-hidden="true">{% icon 'scan-spark' %}</span>
+            <h3 id="skills-ai-title">AI skills</h3>
+          </header>
+          <ul class="approach-skill-list" role="list">
+            <li><strong>Prompt design</strong> Give clear instructions, add context and refine prompts.</li>
+            <li><strong>Text, image and voice AI</strong> Choose the right way to interact with AI for each task.</li>
+            <li><strong>Patterns and predictions</strong> Explore how AI spots patterns and predicts results.</li>
+            <li><strong>Data and model training</strong> Label examples and see how training data shapes results.</li>
+            <li><strong>AI-assisted research</strong> Explore ideas and verify claims against reliable sources.</li>
+            <li><strong>AI integration</strong> Add an AI feature to a simulator or website.</li>
+            <li><strong>AI evaluation</strong> Test different examples, compare answers and spot errors.</li>
+            <li><strong>Responsible AI</strong> Check for bias and protect personal information.</li>
+          </ul>
+        </article>
+
+        <article class="approach-skill-card approach-skill-card-coding" id="skills-coding" aria-labelledby="skills-coding-title">
+          <header class="approach-skill-header">
+            <span aria-hidden="true">{% icon 'code' %}</span>
+            <h3 id="skills-coding-title">Coding &amp; digital creation</h3>
+          </header>
+          <ul class="approach-skill-list" role="list">
+            <li><strong>Vibe coding</strong> Describe what to build and refine it with an AI coding assistant.</li>
+            <li><strong>Web development</strong> Create interactive pages with HTML, CSS and JavaScript.</li>
+            <li><strong>Flowcharts and logic</strong> Map features and write rules for how they respond.</li>
+            <li><strong>Testing and debugging</strong> Try real scenarios, find bugs and check fixes.</li>
+            <li><strong>Git and GitHub</strong> Save code versions and collaborate on projects.</li>
+            <li><strong>Website deployment</strong> Publish a working website that others can try.</li>
+          </ul>
+          <section class="approach-advanced-skills" aria-labelledby="advanced-skills-title">
+            <h4 id="advanced-skills-title">Selected advanced projects</h4>
+            <ul class="approach-skill-list" role="list">
+              <li><strong>Django and APIs</strong> Build a Python web app and connect it to data or AI services.</li>
+              <li><strong>Docker</strong> Package an app to run consistently on different computers.</li>
+            </ul>
+          </section>
+        </article>
+
+        <article class="approach-skill-card approach-skill-card-leadership" id="skills-leadership" aria-labelledby="skills-leadership-title">
+          <header class="approach-skill-header">
+            <span aria-hidden="true">{% icon 'people' %}</span>
+            <h3 id="skills-leadership-title">Creativity &amp; leadership</h3>
+          </header>
+          <ul class="approach-skill-list" role="list">
+            <li><strong>Creative problem-solving</strong> Turn an everyday challenge into an idea worth testing.</li>
+            <li><strong>Independent judgement</strong> Design for real users and back decisions with evidence.</li>
+            <li><strong>Collaboration</strong> Share ideas, give feedback and make decisions together.</li>
+            <li><strong>Public speaking</strong> Present a project and explain the choices behind it.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="approach-section approach-next" aria-labelledby="approach-next-title">
+    <div class="container approach-next-grid">
+      <div>
+        <h2 id="approach-next-title">Find the right class for your child</h2>
+        <p>Our youngest learners explore prompts, patterns and simple rules through guided activities. Older students deepen their AI understanding through web projects, coding and testing. Compare term classes and holiday workshops by age.</p>
+      </div>
+      <a class="button button-lime" href="{% url 'courses' %}">Explore AI classes {% icon 'arrow' %}</a>
+    </div>
+  </section>
+</main>
+{% include 'home/includes/site_footer.html' %}
+{% endblock %}

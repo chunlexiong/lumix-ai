@@ -1,6 +1,115 @@
-{% extends "base.html" %}{% load static wagtailcore_tags %}
-{% block title %}Contact{% endblock %}{% block content %}<div class="site-shell routed-page">{% include "home/includes/site_header.html" %}<main>
-<section class="page-intro"><a href="/" class="page-breadcrumb">Home <span aria-hidden="true">/</span> Contact</a><span class="section-label">LUMIX AI · CHATSWOOD</span><h1>Let’s connect.</h1><p>Find us in Chatswood, connect by mobile or WeChat, or start with a question.</p></section>
-<section class="contact-content" aria-label="Visit LumiX AI"><article class="contact-location"><span class="section-label">OUR LOCATION</span><h2>Your local launchpad.<br>Chatswood.</h2><address><strong>LumiX AI</strong><span>Level 3, 15 Help Street</span><span>Chatswood, NSW</span></address><a class="button button-dark" href="https://www.google.com/maps/search/?api=1&amp;query=Level%203%2C%2015%20Help%20Street%2C%20Chatswood" target="_blank" rel="noopener noreferrer">View on Google Maps <span aria-hidden="true">↗</span></a></article>
-<div class="contact-options"><span class="section-label">LET’S CONNECT</span><h2>Say hello.<br>Bring your questions.</h2><p>Ask about a class, explore an age group or tell us what your child loves creating.</p><div class="contact-demo-note">DEMO CONTACT DETAILS · REPLACE BEFORE LAUNCH</div><article class="contact-channel"><h3>Mobile</h3><p class="contact-channel-value">04XX XXX XXX</p><p>Placeholder number</p></article><article class="contact-channel"><h3>WeChat</h3><p class="contact-channel-value">LumiX_AI_DEMO</p><p>Placeholder WeChat ID</p></article></div>
-</section><div class="page-next-step"><h2>Prefer to write?</h2><a class="button button-dark" href="/for-families/">Open the enquiry form <span>→</span></a></div></main>{% include "home/includes/site_footer.html" %}</div>{% endblock %}
+{% extends "base.html" %}
+{% load static program_tags %}
+{% block title %}Contact{% endblock %}
+{% block content %}
+<div class="site-shell routed-page">
+  {% include "home/includes/site_header.html" %}
+  <main id="main-content">
+    <section class="page-hero page-hero-dark contact-hero" aria-labelledby="contact-title">
+      <div class="container">
+        {% include 'home/includes/hero_breadcrumb.html' with current='Contact' only %}
+        <div class="page-hero-grid page-hero-split">
+          <h1 class="page-hero-title" id="contact-title">Contact <em>LumiX AI</em></h1>
+          <p class="page-hero-lead">Ask about classes, check availability or find directions to our Chatswood studio.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container contact-layout">
+      <section class="contact-panel" id="enquiry" aria-labelledby="enquiry-title">
+        <header class="contact-panel-heading">
+          <span>{% icon 'message' %}</span>
+          <h2 id="enquiry-title">Send an enquiry</h2>
+        </header>
+        <div class="contact-panel-body">
+          {% for message in messages %}
+            {% if "enquiry-success" in message.tags %}
+              <p id="enquiry-status" role="status">{{ message }}</p>
+            {% endif %}
+          {% endfor %}
+          {% if delivery_failed %}
+            <p class="enquiry-error" role="alert">We couldn’t send your enquiry. Please try again or <a href="mailto:{{ contact_email }}">email us directly</a>.</p>
+          {% elif form.errors %}
+            <p class="enquiry-error" role="alert">Please check the fields below and try again.</p>
+          {% endif %}
+          <form id="contact-form" action="{% url 'contact' %}#enquiry" method="post">
+            {% csrf_token %}
+            <div class="form-grid">
+              <div class="enquiry-field">
+                <label for="{{ form.name.id_for_label }}">Your name</label>
+                {{ form.name }}
+                {{ form.name.errors }}
+              </div>
+              <div class="enquiry-field">
+                <label for="{{ form.email.id_for_label }}">Email <span class="field-required">(required)</span></label>
+                {{ form.email }}
+                {{ form.email.errors }}
+              </div>
+              <div class="enquiry-field enquiry-topic">
+                <label for="{{ form.program.id_for_label }}">What are you enquiring about?</label>
+                {{ form.program }}
+                {{ form.program.errors }}
+              </div>
+              <div class="enquiry-field" id="enquiry-age-group" {% if form.age.errors %}data-has-errors{% endif %}>
+                <label for="id_age">Class age group <span>(optional)</span></label>
+                <select name="age" id="id_age"{% if form.age.errors %} aria-invalid="true" aria-describedby="id_age_error"{% endif %}>
+                  <option value="">Choose an age group</option>
+                  {% for program in programs %}
+                    <optgroup data-age-program="{{ program.id }}" label="{{ program.title }}">
+                      {% for card in program.cards %}
+                        <option value="{{ card.age }}"{% if form.program.value == program.id and form.age.value == card.age %} selected{% endif %}>{{ card.age }}</option>
+                      {% endfor %}
+                    </optgroup>
+                  {% endfor %}
+                </select>
+                {{ form.age.errors }}
+              </div>
+            </div>
+            <div class="enquiry-field">
+              <label for="{{ form.message.id_for_label }}">Your question</label>
+              {{ form.message }}
+              {{ form.message.errors }}
+            </div>
+            <button type="submit" class="button contact-submit">Send enquiry {% icon 'arrow' %}</button>
+          </form>
+        </div>
+      </section>
+      <aside class="contact-panel contact-directory" id="contact-details" aria-labelledby="channels-title">
+        <header class="contact-panel-heading">
+          <span>{% icon 'people' %}</span>
+          <h2 id="channels-title">Get in touch</h2>
+        </header>
+        <div class="contact-panel-body">
+          <ul class="contact-links" role="list">
+            <li>
+              <a href="mailto:{{ contact_email }}">
+                <span class="contact-method-icon">{% icon 'mail' %}</span>
+                <span><small>Email</small><strong>{{ contact_email }}</strong></span>
+              </a>
+            </li>
+            <li>
+              <a href="tel:+61449181728">
+                <span class="contact-method-icon">{% icon 'phone' %}</span>
+                <span><small>Phone</small><strong>0449 181 728</strong></span>
+              </a>
+            </li>
+          </ul>
+          <div class="contact-directory-grid">
+            <section class="contact-detail">
+              <h3>WeChat</h3>
+              <p>Scan in WeChat to add us.</p>
+              <img src="{% static 'home/images/wechat-contact-qr.png' %}" alt="Scan this QR code in WeChat to add LumiX AI" width="1114" height="1268">
+            </section>
+            <section class="contact-detail" id="visit" aria-labelledby="visit-title">
+              <h3 id="visit-title">Visit the studio</h3>
+              <address>Level 3, 15 Help Street<br>Chatswood, NSW</address>
+              <a class="arrow-link" href="https://www.google.com/maps/search/?api=1&amp;query=Level%203%2C%2015%20Help%20Street%2C%20Chatswood">Get directions {% icon 'arrow' %}</a>
+            </section>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  {% include "home/includes/site_footer.html" %}
+</div>
+{% endblock %}

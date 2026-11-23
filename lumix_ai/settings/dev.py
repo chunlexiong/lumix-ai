@@ -24,7 +24,8 @@ USE_X_FORWARDED_HOST = env_bool("USE_X_FORWARDED_HOST", False)
 proxy_ssl_header = os.getenv("SECURE_PROXY_SSL_HEADER", "").strip()
 SECURE_PROXY_SSL_HEADER = tuple(proxy_ssl_header.split(",", 1)) if proxy_ssl_header else None
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+if not EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 try:

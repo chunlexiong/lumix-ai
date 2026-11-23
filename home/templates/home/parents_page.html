@@ -1,7 +1,180 @@
-{% extends "base.html" %}{% load static wagtailcore_tags %}
-{% block title %}For parents{% endblock %}{% block content %}<div class="site-shell routed-page">{% include "home/includes/site_header.html" %}<main>
-<section class="page-intro"><a href="/" class="page-breadcrumb">Home <span aria-hidden="true">/</span> For parents</a><span class="section-label">YOUR QUESTIONS, ANSWERED</span><h1>Big potential.<br>A clear path forward.</h1><p>Understand what your child will create, how they’ll learn and which experience suits them.</p></section>
-<section class="parent-section" id="parents">
-      <div class="parent-copy"><span class="section-label">FOR PARENTS &amp; CARERS</span><h2>More than a project.<br><em>Skills that stay.</em></h2><p>AI can generate an answer. Your child learns to ask a better question, shape an original idea and explain why it works.</p><ul class="parent-points"><li><strong>AI understanding</strong><span>Know what AI can do—and when to question it.</span></li><li><strong>Creative problem solving</strong><span>Turn a real challenge into a thoughtful solution.</span></li><li><strong>Confident communication</strong><span>Explain choices and present a creation with pride.</span></li></ul></div>
-      <div class="parent-faq"><h3>Good to know</h3><details open><summary>What will my child create?</summary><p>Something to explore, demonstrate and talk about: a simulator, interactive website or AI prototype. Each age pathway shows what students work towards.</p></details><details><summary>What is vibe coding?</summary><p>Think of AI as a coding assistant, with your child in the driver’s seat. Students describe an idea, review the code and test the result. Teachers help them understand and improve what they build.</p></details><details><summary>Which program should we choose?</summary><p>Holiday workshops offer a focused three-day project. Term classes develop knowledge and skills over several weeks. Check the age range shown for each program.</p></details><details><summary>Where and when are classes?</summary><p>Level 3, 15 Help Street, Chatswood. Dates and prices appear with each program; class times marked TBC are still to be confirmed.</p></details><a class="arrow-link" href="/courses/">Compare programs <span aria-hidden="true">↑</span></a></div>
-    </section><div class="page-next-step"><h2>Let’s find their starting point.</h2><a class="button button-dark" href="/for-families/">Ask about a program <span>→</span></a></div></main>{% include "home/includes/site_footer.html" %}</div>{% endblock %}
+{% extends "base.html" %}
+{% load static program_tags %}
+{% block title %}Parent guide to AI classes{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'home/css/parent_guide.css' %}?v=4">{% endblock %}
+{% block content %}
+<div class="site-shell routed-page">
+  {% include "home/includes/site_header.html" %}
+  <main id="main-content" class="parent-guide">
+    <section class="page-hero page-hero-dark guide-hero" aria-labelledby="parent-guide-title">
+      <div class="container">
+        {% include 'home/includes/hero_breadcrumb.html' with current='Parent guide' only %}
+        <div class="page-hero-grid guide-hero-grid">
+          <div>
+            <h1 class="page-hero-title" id="parent-guide-title">Find the right AI class <em>for your child</em></h1>
+            <p class="page-hero-lead">Compare weekly classes and holiday workshops, see what students build and get answers before you enrol.</p>
+            <a class="button button-lime" href="{% url 'courses' %}">Explore AI classes {% icon 'arrow' %}</a>
+          </div>
+          <nav class="guide-jumps" aria-label="On this page">
+            <h2>On this page</h2>
+            <a href="#class-formats">
+              {% icon 'calendar' %}<span>Compare class formats</span>{% icon 'arrow' %}
+            </a>
+            <a href="#project-pathways">
+              {% icon 'code' %}<span>See what students build</span>{% icon 'arrow' %}
+            </a>
+            <a href="#parent-faq">
+              {% icon 'message' %}<span>Read parent FAQs</span>{% icon 'arrow' %}
+            </a>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide-section guide-formats" id="class-formats" aria-labelledby="class-formats-title">
+      <div class="container">
+        <div class="guide-section-heading">
+          <h2 id="class-formats-title">Two ways to learn</h2>
+          <p>Choose a weekly class for more time to develop an idea, or a holiday workshop for a focused three-day project.</p>
+        </div>
+        <div class="guide-format-grid">
+          <article class="guide-format">
+            <header class="guide-format-header">
+              {% icon 'calendar' %}
+              <h3>Weekly term classes</h3>
+            </header>
+            <div class="guide-format-body">
+              <p>Develop one project over several weeks. Each class gives students time to try a new AI concept, test their choices and improve what they build.</p>
+              <a class="button guide-format-action" href="{% url 'courses' %}#term-one">Explore Term 1 classes {% icon 'arrow' %}</a>
+            </div>
+          </article>
+          <article class="guide-format guide-format-workshop">
+            <header class="guide-format-header">
+              {% icon 'home' %}
+              <h3>Holiday workshops</h3>
+            </header>
+            <div class="guide-format-body">
+              <p>Spend three days on one project. At Future Home Lab, students use guided AI tools to tackle a smart-home challenge, then present what they created.</p>
+              <a class="button guide-format-action" href="{% url 'courses' %}#january-home">Explore January workshops {% icon 'arrow' %}</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide-section guide-projects" id="project-pathways" aria-labelledby="project-pathways-title">
+      <div class="container">
+        <div class="guide-section-heading">
+          <h2 id="project-pathways-title">What can your child build?</h2>
+          <p>Three illustrated examples of what students can build. Projects vary by age group and class.</p>
+        </div>
+        <div class="guide-project-grid">
+          <article class="guide-project">
+            <img src="{% static 'home/images/project-smart-garden.webp' %}" alt="" width="1080" height="676" loading="lazy">
+            <div class="guide-project-copy">
+              <h3>A guided simulator</h3>
+              <p>Design a smart garden helper and test when it suggests watering. Students explore AI prompts and set simple response rules.</p>
+            </div>
+          </article>
+          <article class="guide-project">
+            <img src="{% static 'home/images/project-accessible-trip.webp' %}" alt="" width="1080" height="676" loading="lazy">
+            <div class="guide-project-copy">
+              <h3>An interactive website</h3>
+              <p>Use an AI coding assistant to build a trip planner. Students can test whether its route suggestions meet different travellers’ needs.</p>
+            </div>
+          </article>
+          <article class="guide-project">
+            <img src="{% static 'home/images/project-recycling-sorter.webp' %}" alt="" width="1080" height="676" loading="lazy">
+            <div class="guide-project-copy">
+              <h3>An AI prototype</h3>
+              <p>Teach a recycling sorter using picture examples. Students test unfamiliar items and explain where the model gets it right or makes mistakes.</p>
+            </div>
+          </article>
+        </div>
+        <a class="arrow-link" href="{% url 'approach' %}#skills">See the skills students learn {% icon 'arrow' %}</a>
+      </div>
+    </section>
+
+    <section class="guide-section guide-faq" id="parent-faq" aria-labelledby="guide-faq-title">
+      <div class="container">
+        <div class="guide-section-heading">
+          <h2 id="guide-faq-title">Parent FAQs</h2>
+          <p>Find answers about class fit, what students learn and how to plan your visit.</p>
+        </div>
+        <div class="guide-faq-grid">
+          <section class="guide-faq-group" aria-labelledby="guide-faq-fit">
+            <h3 id="guide-faq-fit">{% icon 'people' %} Choosing a class</h3>
+            <details>
+              <summary>How do I find my child’s age group?</summary>
+              <p>Use the <a href="{% url 'courses' %}#age-filter">age filter on the AI classes page</a>. Age bands can differ between terms and workshops.</p>
+            </details>
+            <details>
+              <summary>Does my child need coding experience?</summary>
+              <p>Younger groups use guided activities and simple rules. Older groups may work with website code and more independent projects. If your child is new to coding, <a href="{% url 'contact' %}#contact-details">tell us their age and experience</a> so we can help you choose.</p>
+            </details>
+            <details>
+              <summary>How do the January workshop dates work?</summary>
+              <p>The January Future Home Lab runs twice. Choose the three-day session that suits your family. <a href="{% url 'courses' %}#january-home">See the dates and age-group times</a>.</p>
+            </details>
+            <details>
+              <summary>What if my child is between two groups?</summary>
+              <p>Share their age, interests and anything they’ve already tried, such as AI prompts or building a website. <a href="{% url 'contact' %}#contact-details">Ask us</a> which group offers the right level of challenge.</p>
+            </details>
+          </section>
+
+          <section class="guide-faq-group" aria-labelledby="guide-faq-learning">
+            <h3 id="guide-faq-learning">{% icon 'bulb' %} Learning and projects</h3>
+            <details>
+              <summary>What is vibe coding?</summary>
+              <p>Students describe a feature to an AI coding assistant, try the code it generates and refine it with teacher guidance. They learn to explain what the code does and check whether it works.</p>
+            </details>
+            <details>
+              <summary>How do students learn to use AI responsibly?</summary>
+              <p>Students practise checking answers, spotting bias and deciding what information to keep private. The depth of these activities varies by age and class.</p>
+            </details>
+            <details>
+              <summary>Will my child practise presenting?</summary>
+              <p>Students practise explaining what they made and why they made it. At Future Home Lab, they present their project at the end of the workshop.</p>
+            </details>
+            <details>
+              <summary>Where can I see student projects?</summary>
+              <p><a href="/student-life/#gallery">Student Life</a> is where we share published class photos, LumiX AI videos and student projects.</p>
+            </details>
+          </section>
+
+          <section class="guide-faq-group" aria-labelledby="guide-faq-logistics">
+            <h3 id="guide-faq-logistics">{% icon 'pin' %} Dates and practical details</h3>
+            <details>
+              <summary>Where are classes held?</summary>
+              <p>Level 3, 15 Help Street, Chatswood, NSW. <a href="{% url 'contact' %}#visit">Get directions to the studio</a>.</p>
+            </details>
+            <details>
+              <summary>Where can I check dates, times and fees?</summary>
+              <p>Each listing shows its dates and each age group’s times and fees. Check the <a href="{% url 'courses' %}">AI classes page</a> for current details.</p>
+            </details>
+            <details>
+              <summary>Does my child need to bring a device?</summary>
+              <p><a href="{% url 'contact' %}#contact-details">Check with us</a> before the first session so we can confirm the device and setup for your child’s class.</p>
+            </details>
+            <details>
+              <summary>How do I ask about availability?</summary>
+              <p><a href="{% url 'contact' %}#contact-details">Email, call or message us on WeChat</a> with the class you’re considering and your child’s age.</p>
+            </details>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="guide-next" aria-labelledby="guide-next-title">
+      <div class="container">
+        <div>
+          <h2 id="guide-next-title">Let’s find the right class</h2>
+          <p>Tell us your child’s age, interests and experience. We’ll help you find a class that fits.</p>
+        </div>
+        <a class="button button-lime" href="{% url 'contact' %}#contact-details">Ask about a class {% icon 'arrow' %}</a>
+      </div>
+    </section>
+  </main>
+  {% include "home/includes/site_footer.html" %}
+</div>
+{% endblock %}

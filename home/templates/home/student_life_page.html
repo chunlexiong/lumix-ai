@@ -1,0 +1,62 @@
+{% extends 'base.html' %}{% load static wagtailimages_tags program_tags %}
+{% block title %}Student life{% endblock %}
+{% block content %}{% include 'home/includes/site_header.html' %}<main id="main-content">
+<section class="page-hero life-hero" aria-labelledby="student-life-title">
+  <div class="container">
+    {% include 'home/includes/hero_breadcrumb.html' with current='Student life' only %}
+    <div class="page-hero-grid">
+      <div>
+        <h1 class="page-hero-title" id="student-life-title">Student life <em>at LumiX AI</em></h1>
+        <p class="page-hero-lead">Browse class photos, watch LumiX AI videos and see what students build.</p>
+        <ul class="life-topics" role="list">
+          <li>{% icon 'people' %} Class photos</li>
+          <li>{% icon 'present' %} LumiX AI videos</li>
+          <li>{% icon 'code' %} Student projects</li>
+        </ul>
+        <a class="button button-dark" href="#gallery">Explore the gallery {% icon 'arrow' %}</a>
+      </div>
+      <figure class="page-hero-illustration">
+        <img src="{% static 'home/images/student-life-showcase.webp' %}" alt="A young presenter shows classmates a solar system website with an AI question panel" width="1536" height="1024" fetchpriority="high">
+        <figcaption>Illustrative scene</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+<section class="section life-gallery" id="gallery" aria-labelledby="gallery-title">
+  <div class="container">
+    <div class="section-heading">
+      <h2 id="gallery-title">Student life gallery</h2>
+      {% if page.introduction %}<p>{{ page.introduction }}</p>{% endif %}
+    </div>
+    <div class="life-filter-row">
+      <div class="life-filters" role="group" aria-label="Filter the gallery">
+        <button type="button" data-gallery-filter="all" aria-pressed="true">All</button>
+        <button type="button" data-gallery-filter="photo" aria-pressed="false">Class photos</button>
+        <button type="button" data-gallery-filter="video" aria-pressed="false">LumiX AI videos</button>
+        <button type="button" data-gallery-filter="project" aria-pressed="false">Student projects</button>
+      </div>
+      {% if page.gallery %}
+        <p role="status" id="gallery-status">{{ page.gallery|length }} gallery item{{ page.gallery|length|pluralize }}</p>
+      {% endif %}
+    </div>
+    {% if page.gallery %}
+<div class="life-gallery-grid" id="gallery-items">{% for block in page.gallery %}<article class="life-media-card" data-gallery-kind="{{ block.block_type }}">
+{% if block.block_type == 'video' %}{% image block.value.poster width-1000 as poster %}<div class="life-video"><video controls playsinline preload="none" poster="{{ poster.url }}" aria-label="{{ block.value.title }}"><source src="{{ block.value.video.url }}" type="video/mp4">{% if block.value.captions_file %}<track kind="captions" src="{{ block.value.captions_file.url }}" srclang="en" label="English" default>{% endif %}<p>Your browser cannot play this video. <a href="{{ block.value.video.url }}">Download the video</a>.</p></video></div>
+{% else %}{% image block.value.image width-1600 as full %}{% image block.value.image fill-900x650 as thumb %}<button class="life-photo" type="button" data-gallery-image="{{ full.url }}" data-gallery-alt="{{ block.value.alt_text }}" data-gallery-title="{{ block.value.title }}" aria-label="Enlarge {{ block.value.title }}"><img src="{{ thumb.url }}" alt="{{ block.value.alt_text }}" width="900" height="650" loading="lazy"><span>View photo</span></button>{% endif %}
+<div class="life-media-copy"><span class="section-label">{% if block.block_type == 'photo' %}CLASS PHOTO{% elif block.block_type == 'video' %}LUMIX AI VIDEO{% else %}STUDENT PROJECT{% endif %}</span><h3>{{ block.value.title }}</h3>{% if block.value.caption %}<p>{{ block.value.caption|linebreaksbr }}</p>{% endif %}{% if block.block_type == 'project' and block.value.project_url %}<a class="text-link" href="{{ block.value.project_url }}" target="_blank" rel="noopener noreferrer">Explore this project {% icon 'arrow' %} <span class="sr-only">(opens in a new tab)</span></a>{% endif %}{% if block.block_type == 'video' and block.value.transcript %}<details><summary>Read video transcript</summary><p>{{ block.value.transcript|linebreaksbr }}</p></details>{% endif %}</div></article>{% endfor %}</div>
+    <div class="life-empty" id="gallery-empty" hidden>
+      <h3>No items in this category</h3>
+      <p>Choose All to see the rest of the gallery.</p>
+    </div>
+    {% endif %}
+</div></section>
+<section class="life-belief" aria-labelledby="life-belief-title">
+  <div class="container life-belief-panel">
+    <div class="life-belief-copy">
+      <h2 id="life-belief-title">The work behind the showcase</h2>
+      <p>Students build with AI, test what they make and practise explaining the choices behind their projects.</p>
+    </div>
+    <a class="button button-lime" href="{% url 'approach' %}#how-it-works">See how students learn {% icon 'arrow' %}</a>
+  </div>
+</section>
+</main><dialog class="life-lightbox" id="gallery-lightbox" aria-labelledby="lightbox-title"><div class="life-lightbox-top"><h2 id="lightbox-title"></h2><button type="button" id="lightbox-close" aria-label="Close photo">Close ✕</button></div><img id="lightbox-image" alt=""></dialog>{% include 'home/includes/site_footer.html' %}{% endblock %}

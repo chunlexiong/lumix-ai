@@ -1,0 +1,23 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Sign in to your family account{% endblock %}
+{% block heading %}Family <em>sign-in</em>{% endblock %}
+{% block intro %}Use the email and password you registered with.{% endblock %}
+{% block enrol_content %}
+<div class="enrol-split">
+  <section class="enrol-card" aria-labelledby="signin-heading">
+    <h2 id="signin-heading">Sign in</h2>
+    <form method="post" class="enrol-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% include "home/enrolment/fields.html" %}
+      <button class="button enrol-primary" type="submit">Sign in {% icon 'arrow' %}</button>
+    </form>
+  </section>
+  <aside class="enrol-note">
+    <h2>New to LumiX AI?</h2>
+    <p>Create a family account to enrol a student.</p>
+    <a class="arrow-link" href="{% url 'family_register' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Register your family {% icon 'arrow' %}</a>
+  </aside>
+</div>
+{% endblock %}

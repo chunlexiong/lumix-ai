@@ -1,0 +1,30 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Choose a class{% endblock %}
+{% block heading %}Choose <em>a class</em>{% endblock %}
+{% block intro %}Pick a program and age group, then choose who’s attending and when.{% endblock %}
+{% block steps %}{% include "home/enrolment/steps.html" with step=2 only %}{% endblock %}
+{% block enrol_content %}
+{% for program in programs %}
+<section class="enrol-program" aria-labelledby="enrol-{{ program.id }}">
+  <div class="enrol-program-heading">
+    <div>
+      <h2 id="enrol-{{ program.id }}">{{ program.title }}</h2>
+      <p>{{ program.dates }}</p>
+    </div>
+    <span>{{ program.session_count }} sessions</span>
+  </div>
+  <div class="enrol-class-grid">
+    {% for card in program.cards %}
+    <article class="enrol-class-card">
+      <span class="enrol-age">Ages {{ card.age }}</span>
+      <h3>{{ card.name }}</h3>
+      <p>{{ card.time }}</p>
+      <p class="enrol-class-price"><strong>{{ card.total_price }}</strong> AUD total</p>
+      <a class="button enrol-primary" href="{% url 'enrolment_select' program.id card.min_age %}">Select class <span class="sr-only">{{ card.name }}</span> {% icon 'arrow' %}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

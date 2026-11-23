@@ -1,16 +1,22 @@
-{% load static %}
-
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="/" aria-label="LumiX AI home"><img class="brand-logo" src="{% static 'home/images/lumix-ai-logo-transparent.png' %}" alt="LumiX AI" width="112" height="76"></a>
-      <span class="brand-descriptor">AI education<br>for ages 6–16</span>
-      <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span></button>
-      <nav class="main-nav" id="main-navigation" aria-label="Main navigation">
-        <a href="/our-approach/" {% if request.path == "/our-approach/" %}aria-current="page"{% endif %}>Our approach</a>
-        <a href="/courses/" {% if request.path == "/courses/" %}aria-current="page"{% endif %}>Courses</a>
-        <a href="/for-parents/" {% if request.path == "/for-parents/" %}aria-current="page"{% endif %}>For parents</a>
-        <a href="/contact/" {% if request.path == "/contact/" %}aria-current="page"{% endif %}>Contact</a>
-        <a class="nav-cta" href="/for-families/" {% if request.path == "/for-families/" %}aria-current="page"{% endif %}>For families <span aria-hidden="true">↗</span></a>
-      </nav>
-    </div>
-  </header>
+{% load static program_tags %}
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="announcement"><div class="container"><span>Young minds. Bold thinking. AI possibilities.</span><a href="/courses/#january-home">January 2027 workshops {% icon 'arrow' %}</a></div></div>
+<header class="site-header"><div class="container header-inner">
+<a class="brand" href="/" aria-label="LumiX AI home"><img src="{% static 'home/images/lumix-ai-logo-transparent.webp' %}" alt="LumiX AI" width="150" height="98"></a>
+<button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="main-navigation"><span></span><span></span><span></span></button>
+<nav class="main-nav" id="main-navigation" aria-label="Main navigation">
+<a href="/courses/" {% if request.path == '/courses/' %}aria-current="page"{% endif %}>AI classes</a>
+<a href="/our-approach/" {% if request.path == '/our-approach/' %}aria-current="page"{% endif %}>Our approach</a>
+<a href="/student-life/" {% if request.path == '/student-life/' %}aria-current="page"{% endif %}>Student life</a>
+{% url 'parents' as parent_guide_url %}
+{% url 'contact' as contact_url %}
+<a href="{{ parent_guide_url }}" {% if request.path == parent_guide_url %}aria-current="page"{% endif %}>Parent guide</a>
+<a href="{{ contact_url }}" {% if request.path == contact_url %}aria-current="page"{% endif %}>Contact</a>
+{% if request.user.is_authenticated %}
+  {% url 'family_account' as enrol_url %}
+  <a class="nav-cta" href="{{ enrol_url }}" {% if request.path == enrol_url %}aria-current="page"{% endif %}>Family account</a>
+{% else %}
+  {% url 'family_register' as enrol_url %}
+  <a class="nav-cta" href="{{ enrol_url }}" {% if request.path == enrol_url %}aria-current="page"{% endif %}>Enrol {% icon 'arrow' %}</a>
+{% endif %}
+</nav></div></header>

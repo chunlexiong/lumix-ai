@@ -1,0 +1,27 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Register your family{% endblock %}
+{% block heading %}Register <em>your family</em>{% endblock %}
+{% block intro %}Create one account for your family. Use it to enrol again and check payments.{% endblock %}
+{% block steps %}{% include "home/enrolment/steps.html" with step=1 only %}{% endblock %}
+{% block enrol_content %}
+<div class="enrol-split">
+  <section class="enrol-card" aria-labelledby="register-heading">
+    <h2 id="register-heading">Family details</h2>
+    <form method="post" class="enrol-form enrol-register-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      {% include "home/enrolment/fields.html" %}
+      <button class="button enrol-primary" type="submit">Create family account {% icon 'arrow' %}</button>
+    </form>
+  </section>
+  <aside class="enrol-note">
+    <h2>Already registered?</h2>
+    <p>Sign in to choose a class using the student details you’ve saved.</p>
+    <a class="arrow-link" href="{{ sign_in_url }}">Sign in {% icon 'arrow' %}</a>
+    <div class="enrol-note-divider"></div>
+    <h3>Enrolling siblings?</h3>
+    <p>Start with one student. Add a sibling from your family account.</p>
+  </aside>
+</div>
+{% endblock %}

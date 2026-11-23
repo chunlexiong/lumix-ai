@@ -1,0 +1,16 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Add a student{% endblock %}
+{% block heading %}Add <em>a student</em>{% endblock %}
+{% block intro %}Save a student to your family account so you can select them when you enrol.{% endblock %}
+{% block enrol_content %}
+<section class="enrol-card enrol-card-narrow" aria-labelledby="new-student-heading">
+  <h2 id="new-student-heading">Student details</h2>
+  <form method="post" class="enrol-form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% include "home/enrolment/fields.html" %}
+    <button class="button enrol-primary" type="submit">Save student {% icon 'arrow' %}</button>
+  </form>
+</section>
+{% endblock %}

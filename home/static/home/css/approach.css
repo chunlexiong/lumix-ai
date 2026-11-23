@@ -1,0 +1,479 @@
+.approach-page {
+  background: #fff;
+}
+
+.approach-hero .page-hero-title em {
+  display: block;
+}
+
+.approach-page .button {
+  gap: 12px;
+}
+
+.approach-section {
+  padding-block: clamp(48px, 6vw, 84px);
+}
+
+.approach-section-heading {
+  max-width: 62ch;
+  margin-bottom: 30px;
+}
+
+.approach-section-heading p,
+.approach-next p {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.approach-method {
+  background: radial-gradient(ellipse at 92% 15%, #eaf7ff, transparent 62%),
+    linear-gradient(110deg, #f5f0ff, #f9faff 72%);
+}
+
+.approach-method-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  align-items: end;
+  gap: 16px clamp(24px, 5vw, 70px);
+  max-width: none;
+  margin-bottom: 30px;
+}
+
+.approach-method-heading h2 {
+  margin: 0;
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.approach-method-heading h2 em {
+  color: #6235c7;
+}
+
+.approach-method-heading p {
+  max-width: 48ch;
+}
+
+.approach-steps {
+  --step-padding: clamp(20px, 2.3vw, 34px);
+  --step-icon-size: 50px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid #ddd8ef;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 14px 35px #35215d0a;
+}
+
+.approach-steps li {
+  --step-color: #6236bf;
+  --step-glow: #8155dc;
+  position: relative;
+  padding: var(--step-padding);
+}
+
+.approach-steps li:nth-child(2) {
+  --step-color: #2359ae;
+  --step-glow: #487ecf;
+}
+
+.approach-steps li:nth-child(3) {
+  --step-color: #006c63;
+  --step-glow: #218779;
+}
+
+.approach-steps li:nth-child(4) {
+  --step-color: #773491;
+  --step-glow: #9560b0;
+}
+
+.approach-steps li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: calc(var(--step-padding) + var(--step-icon-size));
+  inset-block-start: calc(var(--step-padding) + var(--step-icon-size) / 2 - 1px);
+  width: calc(100% - var(--step-icon-size));
+  height: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--step-color) 44%, white), #e3ddf4);
+}
+
+.journey-step-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--step-icon-size);
+  height: var(--step-icon-size);
+  margin-bottom: 20px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--step-color), var(--step-glow));
+  color: #fff;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--step-color) 21%, transparent);
+}
+
+.journey-step-icon > .icon {
+  width: 26px;
+  height: 26px;
+}
+
+.approach-steps h3 {
+  color: var(--step-color);
+}
+
+.approach-steps p {
+  max-width: 35ch;
+}
+
+.approach-steps h3 {
+  font-size: var(--type-card-title);
+  letter-spacing: -.025em;
+  margin-bottom: 10px;
+}
+
+.approach-steps p {
+  margin: 0;
+  color: #504b65;
+  font-size: var(--type-reading);
+  line-height: 1.6;
+}
+
+.approach-example {
+  background: #f2f4ff;
+}
+
+.approach-example .section-label {
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.approach-project-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 26px);
+}
+
+.approach-project-card {
+  --project-accent: #8b402f;
+  --project-tint: #faeae0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--project-accent) 18%, white);
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--project-tint), #fff 70%);
+}
+
+.approach-project-card:nth-child(2) {
+  --project-accent: #194e99;
+  --project-tint: #e0edff;
+}
+
+.approach-project-image {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  background: var(--project-tint);
+}
+
+.approach-project-card > div {
+  padding: clamp(20px, 2.3vw, 30px);
+}
+
+.approach-project-card h3 {
+  margin-bottom: 8px;
+  color: var(--project-accent);
+  font-size: var(--type-card-title);
+  line-height: 1.22;
+}
+
+.approach-project-card p {
+  margin: 0;
+  color: #504b65;
+  font-size: var(--type-reading);
+  line-height: 1.6;
+}
+
+.approach-project-card .approach-project-program {
+  margin-bottom: 6px;
+  color: var(--project-accent);
+  font-size: var(--type-label);
+  font-weight: 700;
+}
+
+.approach-project-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 24px;
+}
+
+.approach-project-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.approach-skills {
+  padding-block: clamp(36px, 4.2vw, 64px);
+  background: radial-gradient(ellipse at 12% 6%, #ebe4ff, transparent 55%),
+    radial-gradient(ellipse at 100% 80%, #e0f6f4, transparent 52%), #f7f8fd;
+}
+
+.approach-skills-heading {
+  max-width: 74ch;
+}
+
+.approach-skills-heading h2 {
+  margin-bottom: 12px;
+}
+
+.approach-skills-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .65fr);
+  gap: clamp(13px, 1.5vw, 24px);
+}
+
+.approach-skill-card {
+  --skill-dark: #381b71;
+  --skill-mid: #5f36a8;
+  --skill-light: #cfb8ff;
+  --skill-border: #e3d9f6;
+  --skill-tint: #f5efff;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  border: 1px solid var(--skill-border);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 12px 34px #2317440c;
+}
+
+.approach-skill-card-coding {
+  --skill-dark: #153767;
+  --skill-mid: #2059a1;
+  --skill-light: #a9d8ff;
+  --skill-border: #d7e5f6;
+  --skill-tint: #eef5ff;
+  grid-template-rows: auto 1fr auto;
+}
+
+.approach-skill-card-leadership {
+  --skill-dark: #0c484a;
+  --skill-mid: #116b64;
+  --skill-light: #a0efdf;
+  --skill-border: #d2e9e5;
+  --skill-tint: #eef9f6;
+}
+
+.approach-skill-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 90px;
+  padding: 15px clamp(16px, 1.6vw, 25px);
+  border-bottom: 3px solid var(--skill-light);
+  background:
+    linear-gradient(90deg, var(--skill-dark), transparent 85%),
+    repeating-linear-gradient(115deg, #ffffff12 0 1px, transparent 1px 18px),
+    linear-gradient(115deg, var(--skill-dark), var(--skill-mid));
+  color: #fff;
+}
+
+.approach-skill-header span {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #ffffff3b;
+  border-radius: 12px;
+  background: #ffffff16;
+  color: var(--skill-light);
+}
+
+.approach-skill-header h3 {
+  margin: 0;
+  font-size: var(--type-card-title);
+  letter-spacing: -.032em;
+}
+
+.approach-skill-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(13px, 1.5vw, 22px);
+  margin: 0;
+  padding: 0 clamp(16px, 1.6vw, 25px);
+  list-style: none;
+}
+
+.approach-skill-list li {
+  padding-block: 15px;
+  color: #484963;
+  font-size: var(--type-reading);
+  line-height: 1.45;
+}
+
+.approach-skill-list li:nth-child(n + 3) {
+  border-top: 1px solid var(--skill-border);
+}
+
+.approach-skill-list strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--skill-dark);
+  line-height: 1.28;
+}
+
+.approach-skill-card-leadership .approach-skill-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.approach-skill-card-leadership .approach-skill-list li + li {
+  border-top: 1px solid var(--skill-border);
+}
+
+.approach-advanced-skills {
+  padding-top: 13px;
+  border-top: 1px solid var(--skill-border);
+  background: var(--skill-tint);
+}
+
+.approach-advanced-skills h4 {
+  margin: 0;
+  padding-inline: clamp(16px, 1.6vw, 25px);
+  color: var(--skill-dark);
+  font: 700 var(--type-label)/1.35 var(--font-body);
+  letter-spacing: .025em;
+}
+
+.approach-advanced-skills li {
+  padding-top: 9px;
+}
+
+@media (min-width: 851px) and (max-width: 1150px) {
+  .approach-skills-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .approach-skill-card-leadership {
+    grid-column: 1 / -1;
+  }
+
+  .approach-skill-card-leadership .approach-skill-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .approach-skill-card-leadership .approach-skill-list li + li {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 850px) {
+  .approach-skills-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .approach-skill-header {
+    min-height: 68px;
+  }
+
+  .approach-skill-card-leadership .approach-skill-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .approach-skill-card-leadership .approach-skill-list li:nth-child(2) {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .approach-skill-list,
+  .approach-skill-card-leadership .approach-skill-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .approach-skill-list li + li,
+  .approach-skill-card-leadership .approach-skill-list li:nth-child(2) {
+    border-top: 1px solid var(--skill-border);
+  }
+}
+
+.approach-next {
+  background: linear-gradient(120deg, #20183f, #292958);
+  color: #fff;
+}
+
+.approach-next-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(22px, 4vw, 52px);
+}
+
+.approach-next h2 {
+  font-size: var(--type-section-title);
+}
+
+.approach-next p {
+  color: #e4daf2;
+  max-width: 67ch;
+}
+
+@media (min-width: 741px) and (max-width: 1000px) {
+  .approach-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .approach-steps li:nth-child(even)::before {
+    display: none;
+  }
+
+  .approach-steps li:nth-child(n + 3) {
+    border-top: 1px solid #e9e4f3;
+  }
+}
+
+@media (max-width: 740px) {
+  .approach-project-grid,
+  .approach-next-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .approach-next .button {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 740px) {
+  .approach-method-heading,
+  .approach-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .approach-steps {
+    --step-icon-size: 43px;
+  }
+
+  .approach-steps li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 16px;
+  }
+
+  .journey-step-icon {
+    margin-bottom: 0;
+  }
+
+  .approach-steps li:not(:last-child)::before {
+    inset-inline-start: calc(var(--step-padding) + var(--step-icon-size) / 2 - 1px);
+    inset-block: calc(var(--step-padding) + var(--step-icon-size)) calc(0px - var(--step-padding));
+    width: 2px;
+    height: auto;
+    background: linear-gradient(var(--step-color), #e3ddf4);
+  }
+}
