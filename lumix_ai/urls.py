@@ -1,18 +1,31 @@
 from django.conf import settings
 from django.urls import include, path
 from django.contrib import admin
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
 
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
 
+from home import enrolment_views
+from home.views import contact_page
+
 urlpatterns = [
     path("our-approach/", TemplateView.as_view(template_name="home/approach_page.html"), name="approach"),
     path("courses/", TemplateView.as_view(template_name="home/courses_page.html"), name="courses"),
-    path("for-parents/", TemplateView.as_view(template_name="home/parents_page.html"), name="parents"),
-    path("for-families/", TemplateView.as_view(template_name="home/families_page.html"), name="families"),
-    path("contact/", TemplateView.as_view(template_name="home/contact_page.html"), name="contact"),
+    path("parent-guide/", TemplateView.as_view(template_name="home/parents_page.html"), name="parents"),
+    path("for-parents/", RedirectView.as_view(pattern_name="parents", query_string=True)),
+    path("for-families/", RedirectView.as_view(pattern_name="contact", query_string=True), name="families"),
+    path("contact/", contact_page, name="contact"),
+    path("enrol/", enrolment_views.family_register, name="family_register"),
+    path("enrol/sign-in/", enrolment_views.FamilySignIn.as_view(), name="family_login"),
+    path("enrol/sign-out/", enrolment_views.FamilySignOut.as_view(), name="family_logout"),
+    path("enrol/account/", enrolment_views.family_account, name="family_account"),
+    path("enrol/students/add/", enrolment_views.family_add_student, name="family_add_student"),
+    path("enrol/classes/", enrolment_views.enrolment_classes, name="enrolment_classes"),
+    path("enrol/classes/<slug:program_slug>/<int:age_min>/", enrolment_views.enrolment_select, name="enrolment_select"),
+    path("enrol/payment/<uuid:enrolment_id>/", enrolment_views.enrolment_payment, name="enrolment_payment"),
+    path("enrol/stripe/webhook/", enrolment_views.stripe_webhook, name="stripe_webhook"),
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),

@@ -1,0 +1,38 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Family account{% endblock %}
+{% block heading %}Your <em>family account</em>{% endblock %}
+{% block intro %}Manage students, choose another class or return to payment.{% endblock %}
+{% block enrol_content %}
+<div class="enrol-account-actions">
+  <a class="button enrol-primary" href="{% url 'enrolment_classes' %}">Choose a class {% icon 'arrow' %}</a>
+  <form method="post" action="{% url 'family_logout' %}">
+    {% csrf_token %}
+    <button class="button enrol-quiet" type="submit">Sign out</button>
+  </form>
+</div>
+<div class="enrol-account-grid">
+  <section class="enrol-note" aria-labelledby="students-title">
+    <h2 id="students-title">Students</h2>
+    {% if students %}
+      <ul class="enrol-student-list">
+        {% for student in students %}<li>{{ student.name }}</li>{% endfor %}
+      </ul>
+    {% else %}<p>Add a student to choose a class.</p>{% endif %}
+    <a class="arrow-link" href="{% url 'family_add_student' %}">Add a student {% icon 'arrow' %}</a>
+  </section>
+  <section class="enrol-card" aria-labelledby="enrolments-title">
+    <h2 id="enrolments-title">Enrolments</h2>
+    {% for enrolment in enrolments %}
+      <article class="enrol-account-order">
+        <h3>{{ enrolment.program_title }}</h3>
+        <p>{{ enrolment.student.name }} · {{ enrolment.class_title }}</p>
+        <span class="enrol-age">{{ enrolment.get_status_display }}</span>
+        <a class="arrow-link" href="{% url 'enrolment_payment' enrolment.pk %}">View enrolment {% icon 'arrow' %}</a>
+      </article>
+    {% empty %}
+      <p>Choose a class to start an enrolment.</p>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

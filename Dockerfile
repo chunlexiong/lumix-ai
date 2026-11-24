@@ -2,12 +2,13 @@ FROM python:3.12-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DJANGO_SETTINGS_MODULE=lumix_ai.settings.production
+    DJANGO_SETTINGS_MODULE=lumix_ai.settings.production \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends libjpeg62-turbo libwebp7 \
+    && apt-get install --yes --no-install-recommends ffmpeg libjpeg62-turbo libwebp7 \
     && rm -rf /var/lib/apt/lists/* \
     && addgroup --system app \
     && adduser --system --ingroup app app
@@ -15,6 +16,10 @@ RUN apt-get update \
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir --upgrade pip \
     && python -m pip install --no-cache-dir -r requirements.txt
+
+RUN python -m playwright install --with-deps chromium \
+    && chmod -R a+rX /ms-playwright \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --chown=app:app . .
 RUN mkdir -p /app/staticfiles /app/media \

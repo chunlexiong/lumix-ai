@@ -1,0 +1,30 @@
+{% extends "home/enrolment/base.html" %}
+{% load program_tags %}
+{% block title %}Select {{ card.name }}{% endblock %}
+{% block heading %}Confirm <em>the class</em>{% endblock %}
+{% block intro %}Select the student and session before reviewing payment.{% endblock %}
+{% block steps %}{% include "home/enrolment/steps.html" with step=2 only %}{% endblock %}
+{% block enrol_content %}
+<div class="enrol-split">
+  <section class="enrol-card" aria-labelledby="student-session-title">
+    <h2 id="student-session-title">Student and session</h2>
+    {% if has_students %}
+      <form method="post" class="enrol-form">
+        {% csrf_token %}
+        {% include "home/enrolment/fields.html" %}
+        <button class="button enrol-primary" type="submit">Continue to payment {% icon 'arrow' %}</button>
+      </form>
+    {% else %}
+      <p>Add a student to your account to continue.</p>
+    {% endif %}
+    <a class="arrow-link enrol-secondary" href="{{ add_student_url }}">Add a student {% icon 'arrow' %}</a>
+  </section>
+  <aside class="enrol-note" aria-labelledby="chosen-class-title">
+    <h2 id="chosen-class-title">{{ program.title }}</h2>
+    <p>{{ card.name }} · Ages {{ card.age }}</p>
+    <p>{{ program.dates }}</p>
+    <div class="enrol-total"><span>Total for {{ program.session_count }} sessions</span><strong>{{ card.total_price }} <small>AUD</small></strong></div>
+    <a class="arrow-link" href="{% url 'enrolment_classes' %}">Choose a different class {% icon 'arrow' %}</a>
+  </aside>
+</div>
+{% endblock %}

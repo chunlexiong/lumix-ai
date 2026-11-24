@@ -1,6 +1,14 @@
+import hashlib
+import uuid
+
+from django.conf import settings
 from django.db import models
 from wagtail.admin.panels import FieldPanel
-from wagtail.fields import RichTextField
+from wagtail.documents import get_document_model
+from wagtail.fields import RichTextField, StreamField
+from wagtail import blocks
+from wagtail.images.blocks import ImageChooserBlock
+from wagtail.documents.blocks import DocumentChooserBlock
 from wagtail.models import Page
 
 
@@ -32,3 +40,150 @@ class HomePage(Page):
     ]
 
     max_count = 1
+
+
+class StudentLifePage(Page):
+    """A gallery editors can maintain using Wagtail image and document libraries."""
+
+    introduction = models.TextField(
+        default="Big discoveries. Creative breakthroughs. The moments that make learning their own."
+    )
+    gallery = StreamField([
+        ("photo", blocks.StructBlock([
+            ("image", ImageChooserBlock()),
+        ], icon="image", label="Class photo")),
+        ("video", blocks.StructBlock([
+            ("poster", ImageChooserBlock(required=False, help_text="Optional. If omitted, a poster is generated from the video when the page is published.")),
+            ("video", DocumentChooserBlock(help_text="Upload an MP4 video for reliable browser playback.")),
+        ], icon="media", label="Class video")),
+        ("project", blocks.StructBlock([
+            ("project_url", blocks.URLBlock(help_text="The project must allow embedding in an iframe.")),
+        ], icon="code", label="Student project")),
+    ], blank=True, help_text="Add parent/carer-approved media. Avoid student full names and private details. Publish the page to make changes visible.")
+
+    content_panels = Page.content_panels + [FieldPanel("introduction"), FieldPanel("gallery")]
+    template = "home/student_life_page.html"
+    max_count = 1
+    parent_page_types = ["home.HomePage"]
+    subpage_types = []
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        gallery_blocks = list(self.gallery)
+        group_definitions = [
+            ("photo", "Class photos"),
+            ("video", "LumiX AI videos"),
+            ("project", "Student projects"),
+        ]
+        context["gallery_groups"] = []
+        for key, title in group_definitions:
+            group_blocks = [block for block in gallery_blocks if block.block_type == key]
+            if group_blocks:
+                context["gallery_groups"].append({
+                    "key": key,
+                    "title": title,
+                    "blocks": group_blocks,
+                    "pages": [group_blocks[index:index + 3] for index in range(0, len(group_blocks), 3)],
+                })
+        project_urls = [
+            block.value["project_url"]
+            for block in gallery_blocks
+            if block.block_type == "project"
+        ]
+        project_hashes = [project_url_hash(url) for url in project_urls]
+        context["project_previews"] = {
+            preview.url_hash: preview
+            for preview in StudentProjectPreview.objects.filter(url_hash__in=project_hashes)
+            if preview.image and preview.image.storage.exists(preview.image.name)
+        }
+        video_document_ids = [
+            block.value["video"].pk
+            for block in gallery_blocks
+            if block.block_type == "video" and not block.value["poster"]
+        ]
+        context["video_posters"] = {
+            poster.video_document_id: poster
+            for poster in StudentVideoPoster.objects.filter(video_document_id__in=video_document_ids)
+            if poster.image and poster.image.storage.exists(poster.image.name)
+        }
+        return context
+
+
+def project_url_hash(url):
+    return hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+
+class StudentProjectPreview(models.Model):
+    url_hash = models.CharField(max_length=64, unique=True)
+    url = models.URLField(max_length=2048)
+    image = models.ImageField(upload_to="student_project_previews/")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.url
+
+
+class StudentVideoPoster(models.Model):
+    video_document = models.OneToOneField(
+        get_document_model(),
+        on_delete=models.CASCADE,
+        related_name="student_life_generated_poster",
+    )
+    source_signature = models.CharField(max_length=64)
+    image = models.ImageField(upload_to="student_video_posters/")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Generated poster for {self.video_document}"
+
+
+class Student(models.Model):
+    parent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="students")
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        ordering = ["name", "pk"]
+
+    def __str__(self):
+        return self.name
+
+
+class Enrolment(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Awaiting payment"
+        PREVIEW = "preview", "Preview complete"
+        TESTED = "tested", "Test payment complete"
+        PAID = "paid", "Paid"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="enrolments")
+    program_slug = models.SlugField()
+    age_group = models.CharField(max_length=12)
+    session_key = models.SlugField()
+    program_title = models.CharField(max_length=100)
+    class_title = models.CharField(max_length=100)
+    schedule = models.CharField(max_length=150)
+    session_count = models.PositiveSmallIntegerField()
+    amount_cents = models.PositiveIntegerField()
+    status = models.CharField(max_length=12, choices=Status, default=Status.PENDING)
+    stripe_session_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    stripe_mode = models.CharField(max_length=4, blank=True)
+    checkout_revision = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "program_slug", "age_group", "session_key"],
+                name="unique_student_class_session",
+            ),
+            models.CheckConstraint(condition=models.Q(amount_cents__gt=0), name="enrolment_positive_amount"),
+        ]
+
+    @property
+    def total(self):
+        if self.amount_cents % 100 == 0:
+            return f"${self.amount_cents // 100:,}"
+        return f"${self.amount_cents / 100:,.2f}"
