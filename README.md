@@ -44,6 +44,8 @@ Wagtail document uploads allow the configured file extensions, including MP4 vid
 
 Student project preview screenshots are generated when the Student life page is published and cached in the media volume. The web image includes Playwright and Chromium for this task. If a screenshot cannot be generated, the project URL remains available through its Explore link.
 
+For Student life videos, admins can upload a poster image or leave the poster field empty. When the page is published, the web container uses FFmpeg to extract and cache a frame from videos without a supplied poster. Generated posters are stored in the media volume.
+
 Do not commit `.env.docker` or `.env.prod`; their local values are ignored by Git.
 
 ## Enable enquiry emails

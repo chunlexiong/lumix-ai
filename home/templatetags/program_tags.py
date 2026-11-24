@@ -22,3 +22,10 @@ def project_preview(previews, url):
     if not previews or not url:
         return None
     return previews.get(project_url_hash(url))
+
+
+@register.filter
+def video_poster(posters, document_id):
+    if not posters or not document_id:
+        return None
+    return posters.get(document_id)

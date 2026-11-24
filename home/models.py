@@ -4,6 +4,7 @@ import uuid
 from django.conf import settings
 from django.db import models
 from wagtail.admin.panels import FieldPanel
+from wagtail.documents import get_document_model
 from wagtail.fields import RichTextField, StreamField
 from wagtail import blocks
 from wagtail.images.blocks import ImageChooserBlock
@@ -52,12 +53,8 @@ class StudentLifePage(Page):
             ("image", ImageChooserBlock()),
         ], icon="image", label="Class photo")),
         ("video", blocks.StructBlock([
-            ("title", blocks.CharBlock(max_length=100)),
-            ("poster", ImageChooserBlock()),
+            ("poster", ImageChooserBlock(required=False, help_text="Optional. If omitted, a poster is generated from the video when the page is published.")),
             ("video", DocumentChooserBlock(help_text="Upload an MP4 video for reliable browser playback.")),
-            ("caption", blocks.TextBlock(required=False, max_length=400)),
-            ("transcript", blocks.TextBlock(required=False, help_text="Include a text version of spoken content.")),
-            ("captions_file", DocumentChooserBlock(required=False, help_text="Optional WebVTT (.vtt) captions file.")),
         ], icon="media", label="Class video")),
         ("project", blocks.StructBlock([
             ("project_url", blocks.URLBlock(help_text="The project must allow embedding in an iframe.")),
@@ -99,6 +96,16 @@ class StudentLifePage(Page):
             for preview in StudentProjectPreview.objects.filter(url_hash__in=project_hashes)
             if preview.image and preview.image.storage.exists(preview.image.name)
         }
+        video_document_ids = [
+            block.value["video"].pk
+            for block in gallery_blocks
+            if block.block_type == "video" and not block.value["poster"]
+        ]
+        context["video_posters"] = {
+            poster.video_document_id: poster
+            for poster in StudentVideoPoster.objects.filter(video_document_id__in=video_document_ids)
+            if poster.image and poster.image.storage.exists(poster.image.name)
+        }
         return context
 
 
@@ -114,6 +121,20 @@ class StudentProjectPreview(models.Model):
 
     def __str__(self):
         return self.url
+
+
+class StudentVideoPoster(models.Model):
+    video_document = models.OneToOneField(
+        get_document_model(),
+        on_delete=models.CASCADE,
+        related_name="student_life_generated_poster",
+    )
+    source_signature = models.CharField(max_length=64)
+    image = models.ImageField(upload_to="student_video_posters/")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Generated poster for {self.video_document}"
 
 
 class Student(models.Model):
