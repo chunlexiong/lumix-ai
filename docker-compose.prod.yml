@@ -44,6 +44,8 @@ services:
       - --workers
       - ${DOCKER_GUNICORN_WORKERS:-2}
     restart: unless-stopped
+    init: true
+    shm_size: 1gb
     environment: *django-environment
     volumes:
       - media_data:/app/media

@@ -37,6 +37,8 @@ services:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     restart: unless-stopped
+    init: true
+    shm_size: 1gb
     environment: *django-environment
     ports:
       - "127.0.0.1:${DOCKER_WEB_PORT:-8000}:8000"

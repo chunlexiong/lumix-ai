@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 
 from django.conf import settings
@@ -62,11 +63,7 @@ class StudentLifePage(Page):
             ("captions_file", DocumentChooserBlock(required=False, help_text="Optional WebVTT (.vtt) captions file.")),
         ], icon="media", label="Class video")),
         ("project", blocks.StructBlock([
-            ("title", blocks.CharBlock(max_length=100)),
-            ("image", ImageChooserBlock()),
-            ("alt_text", blocks.CharBlock(max_length=200)),
-            ("caption", blocks.TextBlock(required=False, max_length=400)),
-            ("project_url", blocks.URLBlock(required=False, help_text="Optional public project link. Do not include private student information.")),
+            ("project_url", blocks.URLBlock(help_text="The project must allow embedding in an iframe.")),
         ], icon="code", label="Student project")),
     ], blank=True, help_text="Add parent/carer-approved media. Avoid student full names and private details. Publish the page to make changes visible.")
 
@@ -75,6 +72,35 @@ class StudentLifePage(Page):
     max_count = 1
     parent_page_types = ["home.HomePage"]
     subpage_types = []
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        project_urls = [
+            block.value["project_url"]
+            for block in self.gallery
+            if block.block_type == "project"
+        ]
+        project_hashes = [project_url_hash(url) for url in project_urls]
+        context["project_previews"] = {
+            preview.url_hash: preview
+            for preview in StudentProjectPreview.objects.filter(url_hash__in=project_hashes)
+            if preview.image and preview.image.storage.exists(preview.image.name)
+        }
+        return context
+
+
+def project_url_hash(url):
+    return hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+
+class StudentProjectPreview(models.Model):
+    url_hash = models.CharField(max_length=64, unique=True)
+    url = models.URLField(max_length=2048)
+    image = models.ImageField(upload_to="student_project_previews/")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.url
 
 
 class Student(models.Model):

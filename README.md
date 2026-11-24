@@ -42,6 +42,8 @@ Caddy terminates HTTPS, proxies requests to Django, and serves Wagtail media fro
 
 Wagtail document uploads allow the configured file extensions, including MP4 videos and WebVTT caption files. Set `DOCKER_WAGTAILDOCS_MAX_UPLOAD_SIZE` in `.env.docker` or `.env.prod` to set the per-file limit in bytes; the Compose default is 104857600 (100 MB).
 
+Student project preview screenshots are generated when the Student life page is published and cached in the media volume. The web image includes Playwright and Chromium for this task. If a screenshot cannot be generated, the project URL remains available through its Explore link.
+
 Do not commit `.env.docker` or `.env.prod`; their local values are ignored by Git.
 
 ## Enable enquiry emails
