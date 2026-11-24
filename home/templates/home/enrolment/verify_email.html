@@ -1,0 +1,20 @@
+{% extends "home/enrolment/base.html" %}
+{% block title %}Verify your email{% endblock %}
+{% block heading %}Verify <em>your email</em>{% endblock %}
+{% block intro %}Enter the six-digit code we sent to {{ email }}. It expires after 15 minutes.{% endblock %}
+{% block enrol_content %}
+<section class="enrol-card enrol-card-narrow">
+  <h2>Email verification</h2>
+  {% if notice %}<p role="status">{{ notice }}</p>{% endif %}
+  <form method="post" class="enrol-form">
+    {% csrf_token %}
+    {% include "home/enrolment/fields.html" %}
+    <button class="button enrol-primary" type="submit">Verify and continue</button>
+  </form>
+  <form method="post" class="enrol-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="resend">
+    <button class="button" type="submit">Send a new code</button>
+  </form>
+</section>
+{% endblock %}

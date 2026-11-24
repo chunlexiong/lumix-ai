@@ -1,8 +1,12 @@
 import hashlib
+import secrets
 import uuid
+from datetime import timedelta
 
 from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.utils import timezone
 from wagtail.admin.panels import FieldPanel
 from wagtail.documents import get_document_model
 from wagtail.fields import RichTextField, StreamField
@@ -135,6 +139,53 @@ class StudentVideoPoster(models.Model):
 
     def __str__(self):
         return f"Generated poster for {self.video_document}"
+
+
+class EmailVerificationCode(models.Model):
+    MAX_ATTEMPTS = 5
+
+    class Purpose(models.TextChoices):
+        SIGNUP = "signup", "Signup"
+        PASSWORD_RESET = "password_reset", "Password reset"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="email_verification_codes",
+    )
+    purpose = models.CharField(max_length=20, choices=Purpose.choices)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    @classmethod
+    def create_for_user(cls, user, *, purpose):
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        record = cls.objects.create(
+            user=user,
+            purpose=purpose,
+            code_hash=make_password(code),
+            expires_at=timezone.now() + timedelta(minutes=15),
+        )
+        return record, code
+
+    def verify(self, code):
+        if self.consumed_at or timezone.now() >= self.expires_at or self.attempts >= self.MAX_ATTEMPTS:
+            return False
+
+        self.attempts += 1
+        matched = check_password(code, self.code_hash)
+        update_fields = ["attempts"]
+        if matched:
+            self.consumed_at = timezone.now()
+            update_fields.append("consumed_at")
+        self.save(update_fields=update_fields)
+        return matched
 
 
 class Student(models.Model):
