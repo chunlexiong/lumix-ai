@@ -40,6 +40,8 @@ docker compose --env-file .env.prod -f docker-compose.prod.yml up -d
 
 Caddy terminates HTTPS, proxies requests to Django, and serves Wagtail media from its persistent volume. Point the configured DNS records at the VPS and allow inbound ports 80 and 443. PostgreSQL data also uses a persistent Docker volume. Static assets are collected into the image and served by WhiteNoise.
 
+Wagtail document uploads allow the configured file extensions, including MP4 videos and WebVTT caption files. Set `DOCKER_WAGTAILDOCS_MAX_UPLOAD_SIZE` in `.env.docker` or `.env.prod` to set the per-file limit in bytes; the Compose default is 104857600 (100 MB).
+
 Do not commit `.env.docker` or `.env.prod`; their local values are ignored by Git.
 
 ## Enable enquiry emails
