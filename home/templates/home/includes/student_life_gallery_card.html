@@ -1,0 +1,41 @@
+{% load wagtailimages_tags program_tags %}
+<article class="life-media-card" data-gallery-kind="{{ block.block_type }}">
+  {% if block.block_type == 'photo' %}
+    {% image block.value.image width-1600 as full %}
+    <button class="life-photo" type="button" data-gallery-image="{{ full.url }}" data-gallery-alt="{{ block.value.image.title }}" aria-label="Enlarge class photo">
+      <img src="{{ full.url }}" alt="{{ block.value.image.title }}" width="{{ full.width }}" height="{{ full.height }}" loading="lazy">
+    </button>
+  {% elif block.block_type == 'video' %}
+    {% image block.value.poster width-1000 as poster %}
+    <div class="life-video">
+      <video controls playsinline preload="none" poster="{{ poster.url }}" aria-label="{{ block.value.title }}">
+        <source src="{{ block.value.video.url }}" type="video/mp4">
+        {% if block.value.captions_file %}<track kind="captions" src="{{ block.value.captions_file.url }}" srclang="en" label="English" default>{% endif %}
+        <p>Your browser cannot play this video. <a href="{{ block.value.video.url }}">Download the video</a>.</p>
+      </video>
+    </div>
+    <div class="life-media-copy">
+      <span class="section-label">LUMIX AI VIDEO</span>
+      <h4>{{ block.value.title }}</h4>
+      {% if block.value.caption %}<p>{{ block.value.caption|linebreaksbr }}</p>{% endif %}
+      {% if block.value.transcript %}
+        <details><summary>Read video transcript</summary><p>{{ block.value.transcript|linebreaksbr }}</p></details>
+      {% endif %}
+    </div>
+  {% else %}
+    {% with preview=project_previews|project_preview:block.value.project_url %}
+      <div class="life-project-preview">
+        {% if preview %}
+          <img src="{{ preview.image.url }}" alt="Preview of a student project" width="900" height="650" loading="lazy">
+        {% else %}
+          <div class="life-project-unavailable" role="img" aria-label="Project preview is not available">
+            <span>Project preview unavailable</span>
+          </div>
+        {% endif %}
+        <a class="life-project-explore" href="{{ block.value.project_url }}" target="_blank" rel="noopener noreferrer">
+          Explore project {% icon 'arrow' %}<span class="sr-only"> (opens in a new tab)</span>
+        </a>
+      </div>
+    {% endwith %}
+  {% endif %}
+</article>

@@ -106,17 +106,55 @@
 (() => {
   const filters = [...document.querySelectorAll('[data-gallery-filter]')];
   if (!filters.length) return;
-  const cards = [...document.querySelectorAll('[data-gallery-kind]')];
+  const groups = [...document.querySelectorAll('[data-gallery-group]')];
   const empty = document.querySelector('#gallery-empty');
   const status = document.querySelector('#gallery-status');
-  filters.forEach(button => button.addEventListener('click', () => {
-    const type = button.dataset.galleryFilter;
-    let count = 0;
-    cards.forEach(card => { card.hidden = type !== 'all' && type !== card.dataset.galleryKind; if (!card.hidden) count++; });
-    filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter === button)));
+  const typeLabels = { all: 'gallery items', photo: 'class photos', video: 'videos', project: 'student projects' };
+  let selectedType = 'all';
+
+  function renderGallery() {
+    const visibleGroups = groups.filter(group => selectedType === 'all' || group.dataset.galleryGroup === selectedType);
+    groups.forEach(group => { group.hidden = !visibleGroups.includes(group); });
+    filters.forEach(filter => filter.setAttribute('aria-pressed', String(filter.dataset.galleryFilter === selectedType)));
+    const count = visibleGroups.reduce((total, group) => total + group.querySelectorAll('[data-gallery-kind]').length, 0);
     if (empty) empty.hidden = count > 0;
-    if (status) status.textContent = `${count} ${count === 1 ? 'item' : 'items'} · ${button.textContent}`;
+    if (status) {
+      status.textContent = count
+        ? `${count} ${typeLabels[selectedType]}`
+        : `No ${typeLabels[selectedType]}`;
+    }
+  }
+
+  filters.forEach(button => button.addEventListener('click', () => {
+    selectedType = button.dataset.galleryFilter;
+    renderGallery();
   }));
+  renderGallery();
+
+  document.querySelectorAll('.life-carousel').forEach(carousel => {
+    const track = carousel.querySelector('[data-gallery-carousel]');
+    const arrows = [...carousel.querySelectorAll('[data-carousel-scroll]')];
+    if (!track) return;
+
+    const updateArrows = () => {
+      const canScroll = track.scrollWidth > track.clientWidth + 1;
+      arrows.forEach(arrow => {
+        arrow.hidden = !canScroll;
+        arrow.disabled = arrow.dataset.carouselScroll === '-1'
+          ? track.scrollLeft <= 1
+          : track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+      });
+    };
+
+    arrows.forEach(arrow => arrow.addEventListener('click', () => {
+      const direction = Number(arrow.dataset.carouselScroll);
+      track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
+    }));
+    track.addEventListener('scroll', updateArrows, { passive: true });
+    window.addEventListener('resize', updateArrows);
+    updateArrows();
+  });
+
   const dialog = document.querySelector('#gallery-lightbox');
   const image = document.querySelector('#lightbox-image');
   let trigger;
@@ -124,7 +162,6 @@
     trigger = button;
     image.src = button.dataset.galleryImage;
     image.alt = button.dataset.galleryAlt;
-    document.querySelector('#lightbox-title').textContent = button.dataset.galleryTitle;
     dialog.showModal();
   }));
   document.querySelector('#lightbox-close').addEventListener('click', () => dialog.close());

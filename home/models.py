@@ -49,10 +49,7 @@ class StudentLifePage(Page):
     )
     gallery = StreamField([
         ("photo", blocks.StructBlock([
-            ("title", blocks.CharBlock(max_length=100)),
             ("image", ImageChooserBlock()),
-            ("alt_text", blocks.CharBlock(max_length=200, help_text="Describe the image for visitors using screen readers.")),
-            ("caption", blocks.TextBlock(required=False, max_length=400)),
         ], icon="image", label="Class photo")),
         ("video", blocks.StructBlock([
             ("title", blocks.CharBlock(max_length=100)),
@@ -75,9 +72,25 @@ class StudentLifePage(Page):
 
     def get_context(self, request):
         context = super().get_context(request)
+        gallery_blocks = list(self.gallery)
+        group_definitions = [
+            ("photo", "Class photos"),
+            ("video", "LumiX AI videos"),
+            ("project", "Student projects"),
+        ]
+        context["gallery_groups"] = []
+        for key, title in group_definitions:
+            group_blocks = [block for block in gallery_blocks if block.block_type == key]
+            if group_blocks:
+                context["gallery_groups"].append({
+                    "key": key,
+                    "title": title,
+                    "blocks": group_blocks,
+                    "pages": [group_blocks[index:index + 3] for index in range(0, len(group_blocks), 3)],
+                })
         project_urls = [
             block.value["project_url"]
-            for block in self.gallery
+            for block in gallery_blocks
             if block.block_type == "project"
         ]
         project_hashes = [project_url_hash(url) for url in project_urls]

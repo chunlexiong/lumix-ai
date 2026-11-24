@@ -40,59 +40,38 @@
       {% endif %}
     </div>
     {% if page.gallery %}
-<div class="life-gallery-grid" id="gallery-items">
-  {% for block in page.gallery %}
-    <article class="life-media-card" data-gallery-kind="{{ block.block_type }}">
-      {% if block.block_type == 'video' %}
-        {% image block.value.poster width-1000 as poster %}
-        <div class="life-video">
-          <video controls playsinline preload="none" poster="{{ poster.url }}" aria-label="{{ block.value.title }}">
-            <source src="{{ block.value.video.url }}" type="video/mp4">
-            {% if block.value.captions_file %}<track kind="captions" src="{{ block.value.captions_file.url }}" srclang="en" label="English" default>{% endif %}
-            <p>Your browser cannot play this video. <a href="{{ block.value.video.url }}">Download the video</a>.</p>
-          </video>
-        </div>
-      {% elif block.block_type == 'project' %}
-        {% with preview=project_previews|project_preview:block.value.project_url %}
-          <div class="life-project-preview">
-            {% if preview %}
-              <img src="{{ preview.image.url }}" alt="Preview of a student project" width="900" height="650" loading="lazy">
+      <div class="life-gallery-groups" id="gallery-items">
+        {% for group in gallery_groups %}
+          <section class="life-gallery-group" data-gallery-group="{{ group.key }}" aria-labelledby="gallery-{{ group.key }}-title">
+            <h3 id="gallery-{{ group.key }}-title">{{ group.title }}</h3>
+            {% if group.key == 'project' %}
+              <div class="life-project-grid">
+                {% for block in group.blocks %}
+                  {% include 'home/includes/student_life_gallery_card.html' with block=block %}
+                {% endfor %}
+              </div>
             {% else %}
-              <div class="life-project-unavailable" role="img" aria-label="Project preview is not available">
-                <span>Project preview unavailable</span>
+              <div class="life-carousel">
+                <button class="life-carousel-arrow" type="button" data-carousel-scroll="-1" aria-label="Scroll {{ group.title|lower }} left">{% icon 'chevron' %}</button>
+                <div class="life-carousel-track" data-gallery-carousel="{{ group.key }}" tabindex="0" aria-label="{{ group.title }}">
+                  {% for page_blocks in group.pages %}
+                    <div class="life-carousel-page" aria-label="{{ group.title }} page {{ forloop.counter }}">
+                      {% for block in page_blocks %}
+                        {% include 'home/includes/student_life_gallery_card.html' with block=block %}
+                      {% endfor %}
+                    </div>
+                  {% endfor %}
+                </div>
+                <button class="life-carousel-arrow life-carousel-arrow-next" type="button" data-carousel-scroll="1" aria-label="Scroll {{ group.title|lower }} right">{% icon 'chevron' %}</button>
               </div>
             {% endif %}
-            <a class="life-project-explore" href="{{ block.value.project_url }}" target="_blank" rel="noopener noreferrer">
-              Explore project {% icon 'arrow' %}<span class="sr-only"> (opens in a new tab)</span>
-            </a>
-          </div>
-        {% endwith %}
-      {% else %}
-        {% image block.value.image width-1600 as full %}
-        {% image block.value.image fill-900x650 as thumb %}
-        <button class="life-photo" type="button" data-gallery-image="{{ full.url }}" data-gallery-alt="{{ block.value.alt_text }}" data-gallery-title="{{ block.value.title }}" aria-label="Enlarge {{ block.value.title }}">
-          <img src="{{ thumb.url }}" alt="{{ block.value.alt_text }}" width="900" height="650" loading="lazy">
-          <span>View photo</span>
-        </button>
-      {% endif %}
-
-      {% if block.block_type != 'project' %}
-        <div class="life-media-copy">
-          <span class="section-label">{% if block.block_type == 'photo' %}CLASS PHOTO{% else %}LUMIX AI VIDEO{% endif %}</span>
-          <h3>{{ block.value.title }}</h3>
-          {% if block.value.caption %}<p>{{ block.value.caption|linebreaksbr }}</p>{% endif %}
-          {% if block.block_type == 'video' and block.value.transcript %}
-            <details><summary>Read video transcript</summary><p>{{ block.value.transcript|linebreaksbr }}</p></details>
-          {% endif %}
-        </div>
-      {% endif %}
-    </article>
-  {% endfor %}
-</div>
-    <div class="life-empty" id="gallery-empty" hidden>
-      <h3>No items in this category</h3>
-      <p>Choose All to see the rest of the gallery.</p>
-    </div>
+          </section>
+        {% endfor %}
+      </div>
+      <div class="life-empty" id="gallery-empty" hidden>
+        <h3>No items in this category</h3>
+        <p>Choose All to see the rest of the gallery.</p>
+      </div>
     {% endif %}
 </div></section>
 <section class="life-belief" aria-labelledby="life-belief-title">
@@ -104,4 +83,4 @@
     <a class="button button-lime" href="{% url 'approach' %}#how-it-works">See how students learn {% icon 'arrow' %}</a>
   </div>
 </section>
-</main><dialog class="life-lightbox" id="gallery-lightbox" aria-labelledby="lightbox-title"><div class="life-lightbox-top"><h2 id="lightbox-title"></h2><button type="button" id="lightbox-close" aria-label="Close photo">Close ✕</button></div><img id="lightbox-image" alt=""></dialog>{% include 'home/includes/site_footer.html' %}{% endblock %}
+</main><dialog class="life-lightbox" id="gallery-lightbox" aria-label="Enlarged class photo"><div class="life-lightbox-top"><button type="button" id="lightbox-close" aria-label="Close photo">Close ✕</button></div><img id="lightbox-image" alt=""></dialog>{% include 'home/includes/site_footer.html' %}{% endblock %}
