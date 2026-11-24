@@ -151,13 +151,14 @@ USE_TZ = True
 
 
 # Outbound email
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend").strip()
 EMAIL_HOST = os.getenv("EMAIL_HOST", "").strip()
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", not EMAIL_USE_SSL)
-EMAIL_TIMEOUT = 10
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL") or EMAIL_HOST_USER or "webmaster@localhost"
 CONTACT_EMAIL = os.getenv("CONTACT_EMAIL") or "chenjingsay@gmail.com"
 
