@@ -238,3 +238,7 @@ class Enrolment(models.Model):
         if self.amount_cents % 100 == 0:
             return f"${self.amount_cents // 100:,}"
         return f"${self.amount_cents / 100:,.2f}"
+
+    @property
+    def parent_email(self):
+        return self.student.parent.email
