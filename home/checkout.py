@@ -1,5 +1,6 @@
 """Create and verify Stripe-hosted Checkout Sessions."""
 
+import hashlib
 import hmac
 import json
 import time
@@ -26,7 +27,7 @@ def checkout_mode():
     origin_valid = origin.netloc and not (origin.path.rstrip("/") or origin.query or origin.fragment)
     if not (origin_valid and settings.STRIPE_WEBHOOK_SECRET):
         return ""
-    if key.startswith("sk_live_") and origin.scheme == "https" and not settings.DEBUG:
+    if key.startswith(("sk_live_", "rk_live_")) and origin.scheme == "https" and not settings.DEBUG:
         return "live"
     if key.startswith("sk_test_") and origin.scheme in {"http", "https"}:
         return "test"
@@ -54,7 +55,7 @@ def create_session(enrolment):
     payment = origin + reverse("enrolment_payment", args=[enrolment.pk])
     data = {
         "mode": "payment",
-        "payment_method_types[0]": "card",
+        "allowed_payment_method_types[0]": "card",
         "adaptive_pricing[enabled]": "false",
         "client_reference_id": str(enrolment.pk),
         "customer_email": enrolment.student.parent.email,
@@ -66,7 +67,12 @@ def create_session(enrolment):
         "line_items[0][price_data][product_data][name]": f"{enrolment.program_title} · {enrolment.class_title}",
         "line_items[0][price_data][product_data][description]": enrolment.schedule,
     }
-    return stripe_request("", data, f"enrolment-{enrolment.pk}-{enrolment.stripe_mode}-{enrolment.checkout_revision}")
+    request_fingerprint = hashlib.sha256(urlencode(data).encode()).hexdigest()
+    idempotency_key = (
+        f"enrolment-{enrolment.pk}-{enrolment.stripe_mode}-"
+        f"{enrolment.checkout_revision}-{request_fingerprint}"
+    )
+    return stripe_request("", data, idempotency_key)
 
 
 def retrieve_session(session_id):

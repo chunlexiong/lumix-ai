@@ -4,13 +4,70 @@ import uuid
 from django.contrib import messages
 from django.core.files.base import ContentFile
 from wagtail import hooks
+from wagtail.admin.menu import MenuItem
+from wagtail.admin.viewsets.model import ModelViewSet
 
-from .models import StudentLifePage, StudentProjectPreview, StudentVideoPoster, project_url_hash
+from .models import Enrolment, StudentLifePage, StudentProjectPreview, StudentVideoPoster, project_url_hash
 from .project_screenshots import capture_project_screenshot
 from .video_posters import extract_video_poster, video_source_signature
 
 
 logger = logging.getLogger(__name__)
+
+
+class EnrolmentViewSet(ModelViewSet):
+    model = Enrolment
+    # Enrolments are created by checkout; staff should review them, not create
+    # or edit them through this listing.
+    form_fields = []
+    menu_label = "Enrolments"
+    icon = "list-ul"
+    add_to_admin_menu = True
+    copy_view_enabled = False
+    inspect_view_enabled = True
+    inspect_view_fields = [
+        "student",
+        "parent_email",
+        "program_title",
+        "class_title",
+        "age_group",
+        "schedule",
+        "session_count",
+        "total",
+        "status",
+        "stripe_mode",
+        "created_at",
+        "paid_at",
+    ]
+    list_display = [
+        "created_at",
+        "student",
+        "parent_email",
+        "program_title",
+        "class_title",
+        "status",
+        "total",
+        "paid_at",
+    ]
+    list_filter = ["status", "program_slug", "stripe_mode", "created_at"]
+    search_fields = [
+        "student__name",
+        "student__parent__email",
+        "program_title",
+        "class_title",
+    ]
+    ordering = ["-created_at"]
+    list_per_page = 25
+
+
+@hooks.register("register_admin_viewset")
+def register_enrolment_viewset():
+    return EnrolmentViewSet("enrolments")
+
+
+@hooks.register("register_admin_menu_item")
+def register_public_home_menu_item():
+    return MenuItem("Website home", "/", icon_name="home", order=50)
 
 
 @hooks.register("after_publish_page")
