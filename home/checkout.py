@@ -27,7 +27,7 @@ def checkout_mode():
     origin_valid = origin.netloc and not (origin.path.rstrip("/") or origin.query or origin.fragment)
     if not (origin_valid and settings.STRIPE_WEBHOOK_SECRET):
         return ""
-    if key.startswith("sk_live_") and origin.scheme == "https" and not settings.DEBUG:
+    if key.startswith(("sk_live_", "rk_live_")) and origin.scheme == "https" and not settings.DEBUG:
         return "live"
     if key.startswith("sk_test_") and origin.scheme in {"http", "https"}:
         return "test"
