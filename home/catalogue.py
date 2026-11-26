@@ -213,9 +213,12 @@ PROGRAMS = [{'id': 'january-home',
   'availability_detail': 'TERM 4 · 2026',
   'format_label': 'WEEKLY CLASSES'}]
 
-# Derive both displays from the same rate and session count.
+CLASS_CARDS_BY_GROUP = {}
 for program in PROGRAMS:
     for card in program['cards']:
+        card['anchor'] = f"{program['id']}-class-{card['min_age']}"
+        CLASS_CARDS_BY_GROUP[program['id'], card['age']] = card
+        # Derive both price displays from the same rate and session count.
         total = card['session_price'] * program['session_count']
         card['total_price'] = f'${total:,}'
 

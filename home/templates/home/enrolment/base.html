@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static program_tags %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'home/css/enrolment.css' %}?v=2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'home/css/enrolment.css' %}?v=36">{% endblock %}
 {% block content %}
 {% include "home/includes/site_header.html" %}
 <main id="main-content" class="enrolment-page">
   <section class="page-hero page-hero-dark enrol-hero" aria-labelledby="enrol-title">
     <div class="container">
       <h1 class="page-hero-title" id="enrol-title">{% block heading %}{% endblock %}</h1>
-      <p class="page-hero-lead">{% block intro %}{% endblock %}</p>
+      {% block hero_intro %}<p class="page-hero-lead">{% block intro %}{% endblock %}</p>{% endblock %}
     </div>
   </section>
   <div class="container enrol-content">

@@ -3,7 +3,7 @@
 {% block title %}Choose a class{% endblock %}
 {% block heading %}Choose <em>a class</em>{% endblock %}
 {% block intro %}Pick a program and age group, then choose who’s attending and when.{% endblock %}
-{% block steps %}{% include "home/enrolment/steps.html" with step=2 only %}{% endblock %}
+{% block steps %}{% include "home/enrolment/steps.html" with step='class' only %}{% endblock %}
 {% block enrol_content %}
 {% for program in programs %}
 <section class="enrol-program" aria-labelledby="enrol-{{ program.id }}">

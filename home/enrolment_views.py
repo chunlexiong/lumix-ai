@@ -1,4 +1,6 @@
 import logging
+import re
+import secrets
 from datetime import timedelta
 from urllib.parse import urlencode, urlsplit
 
@@ -8,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -19,8 +21,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from .catalogue import PROGRAMS
 from .checkout import (
-    CheckoutError, checkout_mode, confirm_session, create_session, retrieve_session,
-    session_matches, signed_event,
+    CheckoutError, checkout_mode, confirm_session, create_session, expire_session, prepare_bank_transfer,
+    retrieve_session, session_matches, signed_event,
 )
 from .enrolment_forms import (
     FamilyLoginForm, FamilyPasswordResetForm, FamilyRegistrationForm,
@@ -251,9 +253,17 @@ def password_reset_verify(request):
 @never_cache
 @login_required(login_url="family_login")
 def family_account(request):
+    student_cards = []
+    for student in request.user.students.prefetch_related("enrolments"):
+        enrolled = list(student.enrolments.all())
+        pending = [enrolment for enrolment in enrolled if enrolment.payment_pending]
+        student_cards.append({
+            "student": student,
+            "enrolled": enrolled,
+            "pending": pending,
+        })
     return render(request, "home/enrolment/account.html", {
-        "students": request.user.students.all(),
-        "enrolments": Enrolment.objects.filter(student__parent=request.user).select_related("student"),
+        "student_cards": student_cards,
     })
 
 
@@ -325,46 +335,137 @@ def enrolment_select(request, program_slug, age_min):
     })
 
 
-def payment_page(request, enrolment, *, error="", cancelled=False, status=200):
+def bank_transfer_details():
+    name = settings.BANK_TRANSFER_ACCOUNT_NAME
+    bsb = settings.BANK_TRANSFER_BSB.replace("-", "").replace(" ", "")
+    account = settings.BANK_TRANSFER_ACCOUNT_NUMBER
+    if not name or not re.fullmatch(r"[0-9]{6}", bsb) or not re.fullmatch(r"[0-9]+", account):
+        return None
+    return {"name": name, "bsb": f"{bsb[:3]}-{bsb[3:]}", "account": account}
+
+
+def embedded_checkout_key(mode):
+    key = settings.STRIPE_PUBLISHABLE_KEY
+    return key if mode and key.startswith(f"pk_{mode}_") else ""
+
+
+def payment_page(request, enrolment, *, error="", cancelled=False, status=200, hosted_fallback=False):
     mode = checkout_mode()
+    bank_details = bank_transfer_details()
+    if bank_details and enrolment.status != Enrolment.Status.PAID and not enrolment.bank_transfer_reference:
+        try:
+            with transaction.atomic():
+                enrolment = Enrolment.objects.select_for_update().get(pk=enrolment.pk)
+                if enrolment.status != Enrolment.Status.PAID and not enrolment.bank_transfer_reference:
+                    assign_bank_transfer_reference(enrolment)
+        except CheckoutError:
+            enrolment.refresh_from_db()
+            logger.warning("Unable to reserve a bank transfer reference.")
+
+    preview_complete = enrolment.status == Enrolment.Status.PREVIEW and not mode
+    preview_available = settings.DEBUG and not mode and enrolment.stripe_mode != "live" and not preview_complete
+    test_complete = enrolment.status == Enrolment.Status.TESTED and mode != "live"
+    bank_available = bool(bank_details) or enrolment.awaiting_bank_transfer
+    card_available = bool(mode and not test_complete) or (preview_available and not enrolment.awaiting_bank_transfer)
     return render(request, "home/enrolment/payment.html", {
         "enrolment": enrolment,
         "mode": mode,
-        "preview_available": settings.DEBUG and not mode and enrolment.stripe_mode != "live",
+        "bank_details": bank_details,
+        "bank_available": bank_available,
+        "card_available": card_available,
+        "embedded_key": "" if hosted_fallback else embedded_checkout_key(mode),
+        "card_selected": card_available and (not bank_available or request.POST.get("method") == "card"),
+        "test_complete": test_complete,
+        "preview_complete": preview_complete,
         "error": error,
         "cancelled": cancelled,
     }, status=status)
 
 
-def start_checkout(enrolment, mode):
+def assign_bank_transfer_reference(enrolment):
+    for attempt in range(10):
+        # Prefer five digits. Use the next range if the shorter codes are busy.
+        minimum = 10_000 if attempt < 5 else 100_000
+        reference = str(minimum + secrets.randbelow(9 * minimum))
+        try:
+            with transaction.atomic():
+                enrolment.bank_transfer_reference = reference
+                enrolment.save(update_fields=["bank_transfer_reference"])
+        except IntegrityError:
+            if not Enrolment.objects.filter(bank_transfer_reference=reference).exists():
+                raise
+        else:
+            return
+
+    raise CheckoutError("Could not allocate a bank transfer reference.")
+
+
+def start_bank_transfer(enrolment, mode):
+    if not bank_transfer_details():
+        raise CheckoutError("Bank transfer is unavailable.")
+
+    if not prepare_bank_transfer(enrolment, mode):
+        return
+
+    if not enrolment.bank_transfer_reference:
+        assign_bank_transfer_reference(enrolment)
+    enrolment.status = Enrolment.Status.BANK_PENDING
+    enrolment.paid_at = None
+    enrolment.save(update_fields=["status", "paid_at"])
+
+
+def start_checkout(enrolment, mode, *, embedded=False):
+    if enrolment.awaiting_bank_transfer:
+        # Bank transfer selection already closed the old Stripe session or verified it was a test.
+        if enrolment.stripe_session_id:
+            enrolment.checkout_revision += 1
+        enrolment.stripe_session_id = None
+        enrolment.stripe_mode = ""
+
     if enrolment.stripe_mode == "live" and mode != "live":
         raise CheckoutError("A live payment session already exists.")
     if enrolment.stripe_session_id and enrolment.stripe_mode == mode:
         session = retrieve_session(enrolment.stripe_session_id)
-        if not session_matches(enrolment, session):
+        if not session_matches(enrolment, session) or session.get("id") != enrolment.stripe_session_id:
             raise CheckoutError("The saved Checkout Session does not match.")
         if confirm_session(enrolment, session):
             return None
         if session.get("status") == "open":
-            return checkout_url(session)
+            if session_is_embedded(session) == embedded:
+                return checkout_access(session, embedded)
+            session = expire_session(enrolment.stripe_session_id)
+            if not session_matches(enrolment, session) or session.get("id") != enrolment.stripe_session_id:
+                raise CheckoutError("The closed Checkout Session does not match.")
         if session.get("status") != "expired":
             raise CheckoutError("The payment is still being checked.")
 
     if enrolment.stripe_session_id:
         enrolment.checkout_revision += 1
     enrolment.stripe_mode = mode
-    session = create_session(enrolment)
+    session = create_session(enrolment, embedded=embedded)
     if not session_matches(enrolment, session) or not session.get("id"):
         raise CheckoutError("The new Checkout Session does not match.")
-    url = checkout_url(session)
+    access = checkout_access(session, embedded)
     enrolment.stripe_session_id = session["id"]
     enrolment.status = Enrolment.Status.PENDING
     enrolment.paid_at = None
     enrolment.save(update_fields=["stripe_mode", "stripe_session_id", "checkout_revision", "status", "paid_at"])
-    return url
+    return access
 
 
-def checkout_url(session):
+def session_is_embedded(session):
+    return session.get("ui_mode") in {"embedded", "embedded_page"}
+
+
+def checkout_access(session, embedded):
+    if session_is_embedded(session) != embedded:
+        raise CheckoutError("Checkout returned the wrong display mode.")
+    if embedded:
+        secret = session.get("client_secret")
+        if not isinstance(secret, str) or not secret:
+            raise CheckoutError("Checkout did not return a client secret.")
+        return secret
+
     url = session.get("url") or ""
     parts = urlsplit(url)
     if parts.scheme != "https" or parts.netloc != "checkout.stripe.com":
@@ -379,28 +480,51 @@ def enrolment_payment(request, enrolment_id):
     owned = Enrolment.objects.filter(student__parent=request.user)
     mode = checkout_mode()
     if request.method == "POST":
+        method = request.POST.get("method")
+        embedded = method == "embedded_card"
+        if embedded and not embedded_checkout_key(mode):
+            return JsonResponse({"error": "Card form unavailable."}, status=503)
+        payment_url = reverse("enrolment_payment", args=[enrolment_id])
         try:
             with transaction.atomic():
                 enrolment = get_object_or_404(owned.select_for_update(), pk=enrolment_id)
-                if enrolment.status == Enrolment.Status.PAID or (
-                    enrolment.status == Enrolment.Status.TESTED and mode != "live"
-                ):
+                if enrolment.status == Enrolment.Status.PAID:
+                    return JsonResponse({"redirect": payment_url}) if embedded else redirect(payment_url)
+                if method not in {None, "bank", "card", "embedded_card"}:
                     return redirect("enrolment_payment", enrolment.pk)
+                if enrolment.awaiting_bank_transfer and not (mode and method in {"card", "embedded_card"}):
+                    return redirect("enrolment_payment", enrolment.pk)
+                if method == "bank":
+                    start_bank_transfer(enrolment, mode)
+                    return redirect("enrolment_payment", enrolment.pk)
+                if enrolment.status == Enrolment.Status.TESTED and mode != "live":
+                    return JsonResponse({"redirect": payment_url}) if embedded else redirect(payment_url)
                 if mode:
-                    url = start_checkout(enrolment, mode)
-                    return redirect(url) if url else redirect("enrolment_payment", enrolment.pk)
-                if settings.DEBUG and enrolment.stripe_mode != "live":
+                    access = start_checkout(enrolment, mode, embedded=embedded)
+                    if embedded:
+                        return JsonResponse({"clientSecret": access} if access else {"redirect": payment_url})
+                    return redirect(access or payment_url)
+                if method is None and settings.DEBUG and enrolment.stripe_mode != "live":
                     enrolment.status = Enrolment.Status.PREVIEW
                     enrolment.save(update_fields=["status"])
                     return redirect("enrolment_payment", enrolment.pk)
         except CheckoutError:
             logger.warning("Unable to open enrolment checkout.")
+        if embedded:
+            return JsonResponse({"error": "Card form unavailable."}, status=503)
         enrolment = get_object_or_404(owned, pk=enrolment_id)
-        return payment_page(request, enrolment, error="Checkout is unavailable right now. Please try again later.", status=503)
+        error = (
+            "We couldn’t start a bank transfer. Please try again or contact us if you already started a card payment."
+            if method == "bank" else "Checkout is unavailable right now. Please try again later."
+        )
+        return payment_page(request, enrolment, error=error, status=503, hosted_fallback=method == "card")
 
     enrolment = get_object_or_404(owned, pk=enrolment_id)
     session_id = request.GET.get("session_id")
-    if session_id and session_id == enrolment.stripe_session_id and mode == enrolment.stripe_mode:
+    if (
+        not enrolment.awaiting_bank_transfer and session_id
+        and session_id == enrolment.stripe_session_id and mode == enrolment.stripe_mode
+    ):
         try:
             session = retrieve_session(session_id)
         except CheckoutError:
@@ -412,7 +536,10 @@ def enrolment_payment(request, enrolment_id):
             return redirect("enrolment_payment", enrolment.pk)
         return payment_page(request, enrolment, error="Payment is still being checked. Refresh this page in a moment.")
 
-    return payment_page(request, enrolment, cancelled=request.GET.get("cancelled") == "1")
+    return payment_page(
+        request, enrolment,
+        cancelled=request.GET.get("cancelled") == "1",
+    )
 
 
 @csrf_exempt

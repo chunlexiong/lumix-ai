@@ -1,5 +1,7 @@
-<ol class="enrol-steps" aria-label="Enrolment steps" role="list">
-  <li{% if step == 1 %} aria-current="step"{% endif %}><span aria-hidden="true">1</span> Register</li>
-  <li{% if step == 2 %} aria-current="step"{% endif %}><span aria-hidden="true">2</span> Choose a class</li>
-  <li{% if step == 3 %} aria-current="step"{% endif %}><span aria-hidden="true">3</span> Payment</li>
+<ol class="enrol-steps{% if step != 'register' %} enrol-steps-signed-in{% endif %}" aria-label="Enrolment steps" role="list">
+  {% if step == 'register' %}
+    <li aria-current="step"><span aria-hidden="true">1</span> Register</li>
+  {% endif %}
+  <li{% if step == 'class' %} aria-current="step"{% endif %}><span aria-hidden="true">{% if step == 'register' %}2{% else %}1{% endif %}</span> Choose a class</li>
+  <li{% if step == 'payment' %} aria-current="step"{% endif %}><span aria-hidden="true">{% if step == 'register' %}3{% else %}2{% endif %}</span> Payment</li>
 </ol>

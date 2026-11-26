@@ -10,7 +10,10 @@
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next }}">
     {% include "home/enrolment/fields.html" %}
-    <button class="button enrol-primary" type="submit">Save student {% icon 'arrow' %}</button>
+    <div class="enrol-student-form-actions">
+      <button class="button enrol-primary" type="submit">Save student {% icon 'arrow' %}</button>
+      <a class="button enrol-quiet" href="{% url 'family_account' %}">{% icon 'arrow-left' %} Back to family account</a>
+    </div>
   </form>
 </section>
 {% endblock %}

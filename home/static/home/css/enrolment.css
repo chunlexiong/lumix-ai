@@ -24,6 +24,10 @@
   list-style: none;
 }
 
+.enrol-steps-signed-in {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .enrol-steps li {
   display: flex;
   align-items: center;
@@ -57,13 +61,98 @@
 .enrol-split,
 .enrol-account-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   align-items: start;
   gap: clamp(16px, 3vw, 36px);
 }
 
-.enrol-account-grid {
-  grid-template-columns: minmax(0, .8fr) minmax(0, 1.4fr);
+.enrol-split {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.enrol-student-card {
+  min-width: 0;
+  padding-top: clamp(18px, 3vw, 32px);
+  border-top: 1px solid #dcd5eb;
+}
+
+.enrol-student-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.enrol-student-avatar {
+  display: grid;
+  flex: 0 0 42px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid #ddd3f1;
+  border-radius: 12px;
+  background: #eee8fa;
+  color: #55349a;
+}
+
+.enrol-student-header h2 {
+  margin: 0;
+  font-size: var(--type-card-title);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.enrol-student-due {
+  margin-inline-start: auto;
+  padding: 5px 10px;
+  border: 1px solid #ebd5a6;
+  border-radius: 7px;
+  background: #fff3dc;
+  color: #694000;
+  font-size: var(--type-label);
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.enrol-student-records {
+  --enrol-record-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  --enrol-record-gutter: clamp(14px, 2.2vw, 26px);
+}
+
+.enrol-record-list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.enrol-record-heading {
+  display: none;
+}
+
+.enrol-record-row,
+.enrol-record-empty {
+  min-width: 0;
+  border: 1px solid #ded5ed;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 18px #26194509;
+}
+
+.enrol-record-row {
+  border-top: 3px solid #49327a;
+}
+
+.enrol-record-empty {
+  margin: 0;
+  padding: 18px;
+  color: var(--muted);
+}
+
+.enrol-account-class-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .enrol-card,
@@ -108,6 +197,13 @@
   border-top: 1px solid #d8ccea;
 }
 
+.enrol-student-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
 .enrol-form label {
   margin: 0;
 }
@@ -137,8 +233,8 @@
 }
 
 .enrolment-page .errorlist,
-.enrol-note .enrol-alert,
-.enrol-note .enrol-success {
+:is(.enrol-note, .enrol-payment) .enrol-alert,
+:is(.enrol-note, .enrol-payment) .enrol-success {
   padding: 10px 14px;
   border-radius: 8px;
   background: #fff5e4;
@@ -153,7 +249,7 @@
   color: #872b24;
 }
 
-.enrol-note .enrol-success {
+:is(.enrol-note, .enrol-payment) .enrol-success {
   display: flex;
   gap: 8px;
   align-items: flex-start;
@@ -284,53 +380,801 @@
   font-size: var(--type-label);
 }
 
-.enrol-summary {
-  margin: 0 0 16px;
+.enrol-checkout-page .enrol-hero {
+  padding-block: clamp(22px, 3vw, 40px);
 }
 
-.enrol-summary div {
+.enrol-checkout-page .enrol-steps {
+  display: flex;
+  gap: 12px 20px;
+  max-width: none;
+  margin-bottom: 18px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.enrol-checkout-page .enrol-steps li {
+  flex-direction: row;
+  min-height: 32px;
+  padding: 0;
+  color: #5c5273;
+}
+
+.enrol-checkout-page .enrol-steps li span {
+  background: #e9e3f2;
+}
+
+.enrol-checkout-page .enrol-steps li[aria-current="step"] {
+  background: none;
+  color: #39226a;
+  box-shadow: none;
+}
+
+.enrol-checkout-page .enrol-steps li[aria-current="step"] span {
+  background: #492987;
+  color: #fff;
+}
+
+.enrol-payment-layout {
+  --checkout-inset: clamp(18px, 3vw, 38px);
   display: grid;
-  grid-template-columns: minmax(84px,.45fr) minmax(0,1fr);
-  gap: 10px;
-  padding: 11px 0;
-  border-bottom: 1px solid #ece6f4;
+  grid-template-columns: minmax(0, .59fr) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #ded8ec;
+  border-radius: 22px;
+  background: white;
+  box-shadow: 0 18px 52px #2e1a5210;
 }
 
-.enrol-summary dt {
-  color: var(--muted);
+.enrol-payment-summary,
+.enrol-payment {
+  min-width: 0;
+  padding: var(--checkout-inset);
+}
+
+.enrol-payment-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background:
+    radial-gradient(ellipse at 100% 4%, #7151b675, transparent 54%),
+    radial-gradient(ellipse at 10% 132%, transparent 40%, #c6a9ff24 40.4% 40.7%, transparent 41.1% 46%, #c6a9ff1a 46.4% 46.7%, transparent 47.1%),
+    linear-gradient(150deg, #28194c, #1a1535);
+  color: #fff;
+}
+
+.enrol-summary-header {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.3vw, 16px);
+  max-width: 100%;
+}
+
+.enrol-summary-title {
+  min-width: 0;
+}
+
+.enrol-summary-header .enrol-class-art {
+  flex: none;
+  width: clamp(42px, 4.4vw, 64px);
+  filter: drop-shadow(0 0 7px #ba9ff94d);
+}
+
+.enrol-summary-header h2 {
+  margin: 0 0 6px;
+  color: #fff;
+  font-size: var(--type-panel-title);
+  overflow-wrap: anywhere;
+}
+
+.enrol-summary-header p {
+  margin: 0;
+  color: #eee5ff;
+  font-size: var(--type-reading);
+}
+
+.enrol-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 20px;
+  width: 100%;
+  margin: 24px 0;
+  padding-block: 18px;
+  border-block: 1px solid #ffffff32;
+}
+
+.enrol-summary > div:last-child {
+  grid-column: 1 / -1;
+}
+
+.enrol-summary dt,
+.enrol-checkout-balance dt {
+  margin-bottom: 3px;
+  color: #decff8;
+  font-size: var(--type-label);
   font-weight: 700;
 }
 
 .enrol-summary dd {
   margin: 0;
+  font-size: var(--type-reading);
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
-.enrol-student-list {
+.enrol-checkout-balance {
+  margin: 0 0 5px;
+}
+
+.enrol-checkout-balance dd {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.045em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.enrol-checkout-balance small {
+  color: #decff8;
+  font-size: var(--type-label);
+  letter-spacing: .025em;
+}
+
+.enrol-payment {
+  background: radial-gradient(ellipse at 100% 0%, #eef8fa, transparent 48%), #fff;
+}
+
+.enrol-payment h2 {
   margin: 0 0 16px;
-  padding-inline-start: 20px;
-  overflow-wrap: anywhere;
+  font-size: var(--type-panel-title);
 }
 
-.enrol-account-order {
-  padding-block: 16px;
-  border-top: 1px solid #e6dff0;
+.enrol-payment-methods {
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
 }
 
-.enrol-account-order p {
-  overflow-wrap: anywhere;
-}
-
-.enrol-account-order .arrow-link {
+.enrol-method-picker {
   display: flex;
-  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.enrol-method-choice {
+  --method-accent: #35568c;
+  --method-wash: #eff4fe;
+  --method-stroke: #96aad0;
+  --method-icon-start: #3272c5;
+  --method-icon-end: #253f85;
+  --method-icon-highlight: #bedbff;
+  display: grid;
+  flex: 1 1 205px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 70px;
+  padding: 10px 12px;
+  border: 1px solid #dbdee9;
+  border-radius: 12px;
+  background: #fff;
+  color: #241d3b;
+  font-size: 1rem;
+  font-weight: 750;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.enrol-method-choice-bank {
+  --method-accent: #126359;
+  --method-wash: #e8f7f2;
+  --method-stroke: #52a79d;
+  --method-icon-start: #14857a;
+  --method-icon-end: #0c514a;
+  --method-icon-highlight: #acf3dc;
+}
+
+.enrol-method-choice:hover,
+.enrol-method-choice:has(:checked) {
+  border-color: var(--method-stroke);
+}
+
+.enrol-method-choice:has(:checked) {
+  background: var(--method-wash);
+  box-shadow: inset 0 0 0 1px var(--method-stroke);
+}
+
+.enrol-method-choice:has(:focus-visible) {
+  outline: 2px solid var(--method-accent);
+  outline-offset: 3px;
+}
+
+.enrol-method-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--method-accent);
+  border-radius: 11px;
+  background: linear-gradient(150deg, var(--method-icon-start), var(--method-icon-end));
+  color: #fff;
+  box-shadow: inset 0 1px 0 #ffffff4d, 0 2px 4px #1716311a;
+}
+
+.enrol-method-icon .icon {
+  width: 23px;
+  height: 23px;
+}
+
+.enrol-method-icon .icon-accent {
+  stroke: var(--method-icon-highlight);
+}
+
+.enrol-method-choice input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--method-accent);
+}
+
+.enrol-method-choice input[type="radio"]:focus-visible {
+  outline: none;
+}
+
+.enrol-method-label {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.enrol-payment-badge {
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: #fff0c9;
+  color: #604005;
+  font-size: .76rem;
+  line-height: 1.2;
+}
+
+.enrol-method-panel {
+  display: none;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid #cfdfdf;
+  border-radius: 14px;
+  background: #f5faf9;
+}
+
+.enrol-payment-methods:has(#payment-bank:checked) .enrol-method-panel-bank,
+.enrol-payment-methods:has(#payment-card:checked) .enrol-method-panel-card {
+  display: block;
+}
+
+.enrol-transfer-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 22px;
+  padding: 15px clamp(12px, 2vw, 20px);
+  background:
+    radial-gradient(ellipse at 110% 0%, #66c6b33d, transparent 68%),
+    linear-gradient(115deg, #193a4b, #12514f);
+  color: #fff;
+}
+
+.enrol-method-panel h3 {
+  margin: 0;
+  color: #263858;
+  font-size: var(--type-subheading);
+}
+
+.enrol-transfer-header h3 {
+  color: #fff;
+}
+
+.enrol-transfer-recipient {
+  margin: 0;
+  min-width: 0;
+}
+
+.enrol-transfer-recipient dt {
+  margin-bottom: 2px;
+  color: #caf0e7;
+  font-size: var(--type-label);
+}
+
+.enrol-transfer-recipient dd {
+  margin: 0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.enrol-transfer-body,
+.enrol-method-panel-card {
+  padding: 14px clamp(12px, 2vw, 20px);
+}
+
+.enrol-method-panel-card {
+  border-color: #d8e0ef;
+  background: linear-gradient(120deg, #edf3fd, #fbfcff);
+}
+
+.enrol-method-panel p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--type-label);
+}
+
+.enrol-method-panel .button {
+  margin-top: 12px;
+  min-height: 44px;
+  padding: 9px 13px;
+  font-size: var(--type-label);
+  white-space: normal;
+}
+
+.enrol-bank-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 9px;
+}
+
+.enrol-bank-details > div {
+  min-width: 0;
+  padding: 9px 10px 4px;
+  border: 1px solid #dce7e4;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.enrol-bank-details dt,
+.enrol-bank-reference dt {
+  color: #435a5a;
+  font-size: var(--type-label);
+  font-weight: 700;
+}
+
+.enrol-bank-details dd,
+.enrol-bank-reference dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 8px;
+  margin: 0;
+  color: #153b42;
+  font-size: var(--type-reading);
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.enrol-bank-details [data-transfer-value],
+.enrol-bank-reference [data-transfer-value] {
+  font-variant-numeric: tabular-nums;
+  user-select: all;
+}
+
+.enrol-bank-reference {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #aed4cc;
+  border-radius: 9px;
+  background: linear-gradient(105deg, #dff5ed, #f2faf7);
+}
+
+.enrol-bank-reference > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 10px;
+}
+
+.enrol-bank-reference dd {
+  flex-wrap: nowrap;
+  color: #114740;
+  font-size: 1.42rem;
+  letter-spacing: .025em;
+}
+
+.enrol-copy {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #205d57;
+  font: inherit;
+  font-size: .8125rem;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.enrol-copy:hover,
+.enrol-copy:focus-visible {
+  background: #e2f3ee;
+  text-decoration: underline;
+}
+
+.enrol-copy[hidden] {
+  display: none;
+}
+
+.enrol-checkout-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 8px;
+}
+
+.enrol-checkout-footer .arrow-link,
+.enrol-bank-help {
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: var(--type-label);
+  font-weight: 750;
+}
+
+.enrol-bank-help {
+  display: none;
+  color: #345657;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.enrol-payment:has(#payment-bank:checked) .enrol-bank-help {
+  display: inline-flex;
+}
+
+.enrol-bank-help:hover {
+  color: #173c40;
+}
+
+.enrol-bank-help .icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+}
+
+@media (max-width: 820px) {
+  .enrol-payment-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .enrol-summary {
+    margin: 13px 0;
+    padding-block: 10px;
+    gap: 6px 14px;
+  }
+}
+
+@media (max-width: 520px) {
+  .enrol-method-panel .button {
+    width: 100%;
+  }
+
+  .enrol-bank-details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .enrol-bank-details > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 3px 8px;
+    padding-block: 1px;
+  }
+
+  .enrol-bank-details dt,
+  .enrol-bank-reference dt {
+    font-size: .875rem;
+  }
+
+  .enrol-bank-details dd,
+  .enrol-bank-reference dd {
+    gap: 0 4px;
+  }
+
+  .enrol-bank-details dd {
+    font-size: 1rem;
+  }
+
+  .enrol-bank-reference dd {
+    font-size: 1.25rem;
+  }
+}
+
+.enrol-record-class,
+.enrol-record-payment {
+  min-width: 0;
+  padding: 16px var(--enrol-record-gutter);
+}
+
+.enrol-record-class-with-art {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: center;
+  column-gap: clamp(10px, 1.3vw, 16px);
+}
+
+.enrol-record-class-with-art .enrol-class-art {
+  grid-row: span 2;
+  align-self: center;
+}
+
+.enrol-class-art {
+  width: clamp(46px, 5vw, 68px);
+  aspect-ratio: 1;
+}
+
+.enrol-class-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 540px) {
+  .enrol-record-class-with-art .enrol-class-art {
+    grid-row: auto;
+  }
+
+  .enrol-record-class-with-art .enrol-record-date {
+    grid-column: 1 / -1;
+  }
+}
+
+.enrol-record-class h3 {
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: var(--type-subheading);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.enrol-class-details-link {
+  color: #472787;
+  text-decoration: underline;
+  text-decoration-color: #ab95cc;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .19em;
+}
+
+.enrol-class-details-link:hover {
+  color: #6338a5;
+  text-decoration-color: currentColor;
+}
+
+.enrol-class-details-link .icon {
+  width: .9em;
+  height: .9em;
+  margin-inline-start: .12em;
+  vertical-align: -.13em;
+}
+
+.enrol-summary-header .enrol-class-details-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .3em;
+  color: inherit;
+  text-decoration-color: #cbb8ec;
+}
+
+.enrol-summary-header .enrol-class-details-link:hover {
+  color: #e5d9ff;
+  text-decoration-color: currentColor;
+}
+
+.enrol-summary-header .enrol-class-details-link span {
+  text-decoration: inherit;
+}
+
+.enrol-summary-header .enrol-class-details-link .icon {
+  width: .66em;
+  height: .66em;
+  flex: none;
+  margin: 0;
+}
+
+.enrol-summary-age {
+  white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  .enrol-summary-header h2 {
+    font-size: 1.35rem;
+  }
+}
+
+.enrol-record-class p {
+  margin: 0;
+  color: #3f325b;
+  font-size: var(--type-reading);
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.enrol-record-class-meta strong {
+  color: #2b204e;
+  font-weight: 750;
+}
+
+.enrol-record-class .enrol-record-date {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.enrol-record-date .icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin-top: 2px;
+  color: #514198;
+}
+
+.enrol-record-payment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #e9e2f2;
+  border-radius: 0 0 14px 14px;
+  background: #faf8fd;
+}
+
+.enrol-record-row-due .enrol-record-payment {
+  border-color: #f0e1c3;
+  background: #fffbf2;
+}
+
+.enrol-record-row-paid .enrol-record-payment {
+  border-color: #d5e9e1;
+  background: #f3faf7;
+}
+
+.enrol-record-payment-details {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 6px;
+}
+
+.enrol-record-status {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #eeeaf7;
+  color: #53347b;
+  font-size: var(--type-label);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.enrol-record-row-due .enrol-record-status {
+  background: #fff0d6;
+  color: #704000;
+}
+
+.enrol-record-status-paid {
+  background: #dff3ea;
+  color: #165f4e;
+}
+
+.enrol-record-amount {
+  color: #583305;
+  font-size: clamp(1.45rem, 2.2vw, 1.85rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.enrol-record-amount small {
+  font-size: var(--type-label);
+}
+
+.enrol-record-payment :is(.button, .arrow-link) {
+  min-height: 44px;
+  gap: 8px;
+  font-size: var(--type-label);
+}
+
+.enrol-record-payment .button {
+  padding: 9px 13px;
+  text-align: left;
 }
 
 @media (max-width: 820px) {
   .enrol-split,
-  .enrol-account-grid,
   .enrol-class-grid {
     grid-template-columns: minmax(0,1fr);
+  }
+}
+
+@media (min-width: 380px) and (max-width: 900px) {
+  .enrol-record-row-due .enrol-record-payment {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 7px;
+  }
+
+  .enrol-record-row-due .enrol-record-payment-details {
+    display: contents;
+  }
+
+  .enrol-record-row-due .enrol-record-status {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (min-width: 901px) {
+  .enrol-student-records {
+    border: 1px solid #ded5ed;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 8px 24px #2619450c;
+  }
+
+  .enrol-record-row {
+    display: grid;
+    grid-template-columns: var(--enrol-record-columns);
+  }
+
+  .enrol-record-heading {
+    display: block;
+    padding: 12px var(--enrol-record-gutter);
+    border-radius: 15px 15px 0 0;
+    background: linear-gradient(120deg, #251842, #49327a);
+    color: #fff;
+    font-size: var(--type-label);
+    font-weight: 800;
+  }
+
+  .enrol-record-payment {
+    border-left: 1px solid #e9e2f2;
+  }
+
+  .enrol-record-list {
+    gap: 0;
+  }
+
+  .enrol-record-row {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .enrol-record-row + .enrol-record-row {
+    border-top: 2px solid #b9a8d1;
+  }
+
+  .enrol-record-row:last-child {
+    border-radius: 0 0 15px 15px;
+  }
+
+  .enrol-record-payment {
+    border-top: 0;
+    border-radius: 0;
+  }
+
+  .enrol-record-row:last-child .enrol-record-payment {
+    border-radius: 0 0 15px;
   }
 }
 

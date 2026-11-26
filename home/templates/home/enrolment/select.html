@@ -3,7 +3,7 @@
 {% block title %}Select {{ card.name }}{% endblock %}
 {% block heading %}Confirm <em>the class</em>{% endblock %}
 {% block intro %}Select the student and session before reviewing payment.{% endblock %}
-{% block steps %}{% include "home/enrolment/steps.html" with step=2 only %}{% endblock %}
+{% block steps %}{% include "home/enrolment/steps.html" with step='class' only %}{% endblock %}
 {% block enrol_content %}
 <div class="enrol-split">
   <section class="enrol-card" aria-labelledby="student-session-title">
@@ -12,6 +12,7 @@
       <form method="post" class="enrol-form">
         {% csrf_token %}
         {% include "home/enrolment/fields.html" %}
+        <p class="enrol-help">Continuing saves this enrolment. You can pay now or return to it later.</p>
         <button class="button enrol-primary" type="submit">Continue to payment {% icon 'arrow' %}</button>
       </form>
     {% else %}
