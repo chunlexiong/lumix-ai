@@ -2,7 +2,20 @@
 {% for field in form.visible_fields %}
   <div class="enrol-field" data-field="{{ field.name }}">
     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-    {{ field }}
+    {% if field.field.widget.input_type == "password" %}
+      <div class="enrol-password-control">
+        {{ field }}
+        <button class="enrol-password-toggle" type="button" aria-label="Show password" aria-pressed="false" aria-controls="{{ field.id_for_label }}" title="Show password">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M2.2 12s3.4-6.2 9.8-6.2 9.8 6.2 9.8 6.2-3.4 6.2-9.8 6.2S2.2 12 2.2 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path class="enrol-password-slash" d="m4 4 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    {% else %}
+      {{ field }}
+    {% endif %}
     {% if field.help_text %}<div class="enrol-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>{% endif %}
     {{ field.errors }}
   </div>

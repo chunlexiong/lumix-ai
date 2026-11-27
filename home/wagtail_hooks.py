@@ -2,12 +2,19 @@ import logging
 import uuid
 
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.core.files.base import ContentFile
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from wagtail import hooks
 from wagtail.admin.menu import MenuItem
+from wagtail.admin.views.generic.models import InspectView
 from wagtail.admin.viewsets.model import ModelViewSet
 
+from .checkout import CheckoutError, checkout_mode, prepare_bank_transfer
 from .models import Enrolment, StudentLifePage, StudentProjectPreview, StudentVideoPoster, project_url_hash
+from .payment_email import send_payment_confirmation_email
 from .project_screenshots import capture_project_screenshot
 from .video_posters import extract_video_poster, video_source_signature
 
@@ -15,11 +22,50 @@ from .video_posters import extract_video_poster, video_source_signature
 logger = logging.getLogger(__name__)
 
 
+class EnrolmentInspectView(InspectView):
+    template_name = "home/admin/enrolment_inspect.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_confirm_transfer"] = (
+            self.user_has_permission("change")
+            and self.object.can_reconcile_bank_transfer
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        if not self.user_has_permission("change"):
+            raise PermissionDenied
+        if request.POST.get("received") != "yes":
+            messages.error(request, "Confirm you have received the matching bank transfer.")
+            return redirect(request.path)
+
+        try:
+            with transaction.atomic():
+                enrolment = get_object_or_404(Enrolment.objects.select_for_update(), pk=self.object.pk)
+                if not enrolment.can_reconcile_bank_transfer:
+                    messages.error(request, "This enrolment has no outstanding bank payment to confirm.")
+                elif not enrolment.awaiting_bank_transfer and not prepare_bank_transfer(enrolment, checkout_mode()):
+                    messages.error(request, "A card payment already covers this enrolment. Check the bank deposit separately.")
+                else:
+                    enrolment.status = Enrolment.Status.PAID
+                    enrolment.payment_method = Enrolment.PaymentMethod.BANK_TRANSFER
+                    enrolment.paid_at = timezone.now()
+                    enrolment.save(update_fields=["status", "payment_method", "paid_at"])
+                    if send_payment_confirmation_email(enrolment):
+                        messages.success(request, "Bank transfer confirmed. The enrolment is now paid and a confirmation email was sent.")
+                    else:
+                        messages.warning(request, "Bank transfer confirmed and the enrolment is paid, but the confirmation email could not be sent.")
+        except CheckoutError:
+            messages.error(request, "The existing card checkout could not be closed. Check it before confirming the transfer.")
+        return redirect(request.path)
+
+
 class EnrolmentViewSet(ModelViewSet):
     model = Enrolment
-    # Enrolments are created by checkout; staff should review them, not create
-    # or edit them through this listing.
+    # Enrolments are created by checkout. Bank receipts are confirmed from Inspect.
     form_fields = []
+    inspect_view_class = EnrolmentInspectView
     menu_label = "Enrolments"
     icon = "list-ul"
     add_to_admin_menu = True
@@ -35,9 +81,13 @@ class EnrolmentViewSet(ModelViewSet):
         "session_count",
         "total",
         "status",
+        "payment_method",
+        "bank_transfer_reference",
         "stripe_mode",
         "created_at",
         "paid_at",
+        "payment_confirmation_sent_at",
+        "test_payment_confirmation_sent_at",
     ]
     list_display = [
         "created_at",
@@ -45,7 +95,10 @@ class EnrolmentViewSet(ModelViewSet):
         "parent_email",
         "program_title",
         "class_title",
+        "schedule",
+        "bank_transfer_reference",
         "status",
+        "payment_method",
         "total",
         "paid_at",
     ]
@@ -53,6 +106,8 @@ class EnrolmentViewSet(ModelViewSet):
     search_fields = [
         "student__name",
         "student__parent__email",
+        "bank_transfer_reference",
+        "previous_bank_transfer_reference",
         "program_title",
         "class_title",
     ]

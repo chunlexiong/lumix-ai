@@ -16,17 +16,22 @@
       </div>
     {% endwith %}
   {% else %}
-    {% with preview=project_previews|project_preview:block.value.project_url %}
+    {% with preview=project_previews|project_preview:block.value.project_url host=block.value.project_url|project_host %}
       <div class="life-project-preview">
         {% if preview %}
-          <img src="{{ preview.image.url }}" alt="Preview of a student project" width="900" height="650" loading="lazy">
+          <img src="{{ preview.image.url }}" alt="Project screenshot{% if host %} from {{ host }}{% endif %}" width="1100" height="795" loading="lazy">
         {% else %}
-          <div class="life-project-unavailable" role="img" aria-label="Project preview is not available">
-            <span>Project preview unavailable</span>
-          </div>
+          <p class="life-project-unavailable">Project preview unavailable</p>
         {% endif %}
+      </div>
+      <div class="life-project-actions">
+        <div class="life-project-destination">
+          {% if host %}<span class="life-project-host">{{ host }}</span>{% endif %}
+          <span aria-hidden="true">Opens in a new tab</span>
+        </div>
         <a class="life-project-explore" href="{{ block.value.project_url }}" target="_blank" rel="noopener noreferrer">
-          Explore project {% icon 'arrow' %}<span class="sr-only"> (opens in a new tab)</span>
+          Explore project {% icon 'arrow-up-right' %}
+          <span class="sr-only">{% if host %} on {{ host }}.{% endif %} Opens in a new tab.</span>
         </a>
       </div>
     {% endwith %}

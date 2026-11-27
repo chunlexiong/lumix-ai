@@ -1,38 +1,89 @@
 {% extends "home/enrolment/base.html" %}
-{% load program_tags %}
+{% load static program_tags %}
 {% block title %}Family account{% endblock %}
 {% block heading %}Your <em>family account</em>{% endblock %}
-{% block intro %}Manage students, choose another class or return to payment.{% endblock %}
+{% block hero_intro %}{% endblock %}
 {% block enrol_content %}
 <div class="enrol-account-actions">
-  <a class="button enrol-primary" href="{% url 'enrolment_classes' %}">Choose a class {% icon 'arrow' %}</a>
+  <div class="enrol-account-class-actions">
+    <a class="button enrol-primary" href="{% url 'enrolment_classes' %}">Choose a class {% icon 'arrow' %}</a>
+    <a class="button enrol-quiet" href="{% url 'family_add_student' %}">Add a student</a>
+  </div>
   <form method="post" action="{% url 'family_logout' %}">
     {% csrf_token %}
     <button class="button enrol-quiet" type="submit">Sign out</button>
   </form>
 </div>
+
+{% if student_cards %}
 <div class="enrol-account-grid">
-  <section class="enrol-note" aria-labelledby="students-title">
-    <h2 id="students-title">Students</h2>
-    {% if students %}
-      <ul class="enrol-student-list">
-        {% for student in students %}<li>{{ student.name }}</li>{% endfor %}
-      </ul>
-    {% else %}<p>Add a student to choose a class.</p>{% endif %}
-    <a class="arrow-link" href="{% url 'family_add_student' %}">Add a student {% icon 'arrow' %}</a>
-  </section>
-  <section class="enrol-card" aria-labelledby="enrolments-title">
-    <h2 id="enrolments-title">Enrolments</h2>
-    {% for enrolment in enrolments %}
-      <article class="enrol-account-order">
-        <h3>{{ enrolment.program_title }}</h3>
-        <p>{{ enrolment.student.name }} · {{ enrolment.class_title }}</p>
-        <span class="enrol-age">{{ enrolment.get_status_display }}</span>
-        <a class="arrow-link" href="{% url 'enrolment_payment' enrolment.pk %}">View enrolment {% icon 'arrow' %}</a>
-      </article>
-    {% empty %}
-      <p>Choose a class to start an enrolment.</p>
-    {% endfor %}
-  </section>
+  {% for card in student_cards %}
+    <section class="enrol-student-card" aria-labelledby="student-{{ card.student.pk }}">
+      <header class="enrol-student-header">
+        <span class="enrol-student-avatar">{% icon 'people' %}</span>
+        <h2 id="student-{{ card.student.pk }}">{{ card.student.name }}</h2>
+        {% if card.pending %}
+          <span class="enrol-student-due">{{ card.pending|length }} payment{{ card.pending|length|pluralize }} due</span>
+        {% endif %}
+      </header>
+      {% if card.enrolled %}
+        <div class="enrol-student-records">
+          <div class="enrol-record-heading" id="enrolled-{{ card.student.pk }}">Enrolled classes</div>
+          <ul class="enrol-record-list" role="list" aria-labelledby="enrolled-{{ card.student.pk }}">
+            {% for enrolment in card.enrolled %}
+              <li class="enrol-record-row{% if enrolment.payment_pending %} enrol-record-row-due{% elif enrolment.status == 'paid' %} enrol-record-row-paid{% endif %}">
+                {% class_card enrolment.program_slug enrolment.age_group as catalogue_card %}
+                <div class="enrol-record-class{% if catalogue_card.image %} enrol-record-class-with-art{% endif %}">
+                  {% if catalogue_card.image %}
+                    <div class="enrol-class-art">
+                      <img src="{% static 'home/images/' %}{{ catalogue_card.image }}.webp" alt="" width="440" height="320" loading="lazy" decoding="async">
+                    </div>
+                  {% endif %}
+                  <div>
+                    <h3 id="class-{{ enrolment.pk }}">
+                      {% if catalogue_card %}
+                        <a class="enrol-class-details-link" href="{% url 'courses' %}#{{ catalogue_card.anchor }}" aria-describedby="level-{{ enrolment.pk }}">{{ enrolment.program_title }} {% icon 'arrow' %}</a>
+                      {% else %}
+                        {{ enrolment.program_title }}
+                      {% endif %}
+                    </h3>
+                    <p class="enrol-record-class-meta" id="level-{{ enrolment.pk }}"><strong>{{ enrolment.class_title }}</strong> · Ages {{ enrolment.age_group }}</p>
+                  </div>
+                  <p class="enrol-record-date" id="session-{{ enrolment.pk }}">
+                    {% icon 'calendar' %}<span>{{ enrolment.schedule }}</span>
+                  </p>
+                </div>
+                <div class="enrol-record-payment">
+                  <div class="enrol-record-payment-details">
+                    <span class="enrol-record-status enrol-record-status-{{ enrolment.status }}">{{ enrolment.get_status_display }}</span>
+                    {% if enrolment.payment_pending %}
+                      <strong class="enrol-record-amount">{{ enrolment.total }} <small>AUD</small></strong>
+                    {% endif %}
+                  </div>
+                  {% if enrolment.payment_pending %}
+                    <a class="button enrol-primary" href="{% url 'enrolment_payment' enrolment.pk %}" aria-describedby="class-{{ enrolment.pk }} session-{{ enrolment.pk }}">
+                      Manage payment {% icon 'arrow' %}
+                    </a>
+                  {% else %}
+                    <a class="arrow-link" href="{% url 'enrolment_payment' enrolment.pk %}" aria-describedby="class-{{ enrolment.pk }} session-{{ enrolment.pk }}">
+                      View enrolment {% icon 'arrow' %}
+                    </a>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <p class="enrol-record-empty">No enrolled classes yet.</p>
+      {% endif %}
+    </section>
+  {% endfor %}
 </div>
+{% else %}
+  <section class="enrol-card enrol-card-narrow" aria-labelledby="students-title">
+    <h2 id="students-title">Students</h2>
+    <p>Add a student to start an enrolment.</p>
+  </section>
+{% endif %}
 {% endblock %}

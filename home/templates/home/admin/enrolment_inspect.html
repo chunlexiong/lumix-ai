@@ -1,0 +1,17 @@
+{% extends "wagtailadmin/generic/inspect.html" %}
+{% block main_content %}
+  {{ block.super }}
+  {% if can_confirm_transfer %}
+    <section aria-labelledby="confirm-transfer">
+      <h2 id="confirm-transfer">Confirm bank transfer</h2>
+      <p>Check the amount received is <strong>{{ object.total }} AUD</strong> and the bank reference matches <strong>{{ object.bank_transfer_reference }}</strong>{% if object.previous_bank_transfer_reference %} or the previous reference <strong>{{ object.previous_bank_transfer_reference }}</strong>{% endif %}.</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="w-mb-4">
+          <label><input type="checkbox" name="received" value="yes" required> I have received the matching transfer.</label>
+        </div>
+        <button type="submit" class="button button-primary">Mark as paid</button>
+      </form>
+    </section>
+  {% endif %}
+{% endblock %}

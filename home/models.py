@@ -204,7 +204,12 @@ class Enrolment(models.Model):
         PENDING = "pending", "Awaiting payment"
         PREVIEW = "preview", "Preview complete"
         TESTED = "tested", "Test payment complete"
+        BANK_PENDING = "bank_pending", "Awaiting bank transfer"
         PAID = "paid", "Paid"
+
+    class PaymentMethod(models.TextChoices):
+        CARD = "card", "Card"
+        BANK_TRANSFER = "bank_transfer", "Bank transfer"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="enrolments")
@@ -217,11 +222,18 @@ class Enrolment(models.Model):
     session_count = models.PositiveSmallIntegerField()
     amount_cents = models.PositiveIntegerField()
     status = models.CharField(max_length=12, choices=Status, default=Status.PENDING)
+    payment_method = models.CharField(max_length=16, choices=PaymentMethod, blank=True)
+    bank_transfer_reference = models.CharField(max_length=18, unique=True, null=True, blank=True)
+    previous_bank_transfer_reference = models.CharField(
+        max_length=18, unique=True, null=True, blank=True
+    )
     stripe_session_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     stripe_mode = models.CharField(max_length=4, blank=True)
     checkout_revision = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
+    test_payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -234,6 +246,18 @@ class Enrolment(models.Model):
         ]
 
     @property
+    def payment_pending(self):
+        return self.status in {self.Status.PENDING, self.Status.BANK_PENDING}
+
+    @property
+    def can_reconcile_bank_transfer(self):
+        return self.status != self.Status.PAID and bool(self.bank_transfer_reference)
+
+    @property
+    def awaiting_bank_transfer(self):
+        return self.status == self.Status.BANK_PENDING
+
+    @property
     def total(self):
         if self.amount_cents % 100 == 0:
             return f"${self.amount_cents // 100:,}"
@@ -242,3 +266,9 @@ class Enrolment(models.Model):
     @property
     def parent_email(self):
         return self.student.parent.email
+
+
+class BankTransferReferenceCounter(models.Model):
+    """Database sequence used to allocate non-random bank transfer references."""
+
+    created_at = models.DateTimeField(auto_now_add=True)

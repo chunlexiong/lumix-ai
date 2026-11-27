@@ -1,57 +1,141 @@
 {% extends "home/enrolment/base.html" %}
-{% load program_tags %}
+{% load static program_tags %}
+{% block body_class %}enrol-checkout-page{% endblock %}
+{% block extra_js %}<script src="{% static 'home/js/enrolment-payment.js' %}?v=2" defer></script>{% endblock %}
 {% block title %}Review enrolment and payment{% endblock %}
 {% block heading %}
   {% if enrolment.status == 'paid' %}Enrolment <em>confirmed</em>
-  {% elif enrolment.status == 'tested' and mode != 'live' %}Test payment <em>complete</em>
-  {% elif enrolment.status == 'preview' and not mode %}Checkout preview <em>complete</em>
+  {% elif test_complete and not bank_details %}Test payment <em>complete</em>
+  {% elif preview_complete and not bank_details %}Checkout preview <em>complete</em>
   {% else %}Review <em>and pay</em>{% endif %}
 {% endblock %}
-{% block intro %}Your student, class and payment details are below.{% endblock %}
-{% block steps %}{% include "home/enrolment/steps.html" with step=3 only %}{% endblock %}
+{% block hero_intro %}{% endblock %}
+{% block steps %}
+  {% if enrolment.payment_pending %}
+    {% include "home/enrolment/steps.html" with step='payment' only %}
+  {% endif %}
+{% endblock %}
 {% block enrol_content %}
-<div class="enrol-split">
-  <section class="enrol-card" aria-labelledby="review-title">
-    <h2 id="review-title">Enrolment summary</h2>
+<div class="enrol-payment-layout">
+  <section class="enrol-payment-summary" aria-labelledby="review-title">
+    <header class="enrol-summary-header">
+      {% class_card enrolment.program_slug enrolment.age_group as catalogue_card %}
+      {% if catalogue_card.image %}
+        <div class="enrol-class-art">
+          <img src="{% static 'home/images/' %}{{ catalogue_card.image }}.webp" alt="" width="440" height="320" decoding="async">
+        </div>
+      {% endif %}
+      <div class="enrol-summary-title">
+        <h2 id="review-title">
+          {% if catalogue_card %}
+            <a class="enrol-class-details-link" href="{% url 'courses' %}#{{ catalogue_card.anchor }}" target="_blank" rel="noopener noreferrer" aria-describedby="checkout-class-level checkout-class-link-note">
+              <span>{{ enrolment.program_title }}</span> {% icon 'arrow-up-right' %}
+            </a>
+          {% else %}
+            {{ enrolment.program_title }}
+          {% endif %}
+        </h2>
+        {% if catalogue_card %}<span id="checkout-class-link-note" hidden>Opens in a new tab.</span>{% endif %}
+        <p id="checkout-class-level">{{ enrolment.class_title }} · <span class="enrol-summary-age">Ages {{ enrolment.age_group }}</span></p>
+      </div>
+    </header>
     <dl class="enrol-summary">
       <div><dt>Student</dt><dd>{{ enrolment.student.name }}</dd></div>
-      <div><dt>Program</dt><dd>{{ enrolment.program_title }}</dd></div>
-      <div><dt>Class</dt><dd>{{ enrolment.class_title }} · Ages {{ enrolment.age_group }}</dd></div>
+      <div><dt>Sessions</dt><dd>{{ enrolment.session_count }}</dd></div>
       <div><dt>Schedule</dt><dd>{{ enrolment.schedule }}</dd></div>
-      <div><dt>Included sessions</dt><dd>{{ enrolment.session_count }}</dd></div>
     </dl>
-    <a class="arrow-link" href="{% url 'enrolment_classes' %}">Browse classes {% icon 'arrow' %}</a>
+    <dl class="enrol-checkout-balance">
+      <dt>{% if enrolment.status == 'paid' %}Total paid{% else %}Total due{% endif %}</dt>
+      <dd>{{ enrolment.total }} <small>AUD</small></dd>
+    </dl>
   </section>
 
-  <section class="enrol-note enrol-payment" aria-labelledby="payment-title">
-    <h2 id="payment-title">Payment</h2>
-    <div class="enrol-total"><span>Total</span><strong>{{ enrolment.total }} <small>AUD</small></strong></div>
+  <section class="enrol-payment" aria-labelledby="payment-title">
+    <h2 id="payment-title">{% if enrolment.status == 'paid' %}Payment received{% else %}Payment options{% endif %}</h2>
     {% if error %}<p class="enrol-alert" role="alert">{{ error }}</p>{% endif %}
     {% if cancelled and enrolment.status == 'pending' %}<p class="enrol-alert" role="status">Checkout was cancelled. Your enrolment is saved so you can resume payment.</p>{% endif %}
-    {% if enrolment.status == 'paid' %}
-      <p class="enrol-success" role="status">{% icon 'check' %} Payment received. Your enrolment is confirmed.</p>
-    {% elif enrolment.status == 'tested' and mode != 'live' %}
-      <p class="enrol-success" role="status">{% icon 'check' %} Test payment complete. No money was charged and no place was booked.</p>
-    {% elif enrolment.status == 'preview' and not mode %}
-      <p class="enrol-success" role="status">{% icon 'check' %} Checkout preview complete. No money was charged and no place was booked.</p>
-    {% elif mode or preview_available %}
-      <form method="post" class="enrol-form">
-        {% csrf_token %}
-        {% if mode == 'test' %}
-          <p class="enrol-alert">Stripe test mode. Use test card details to try the checkout.</p>
-          <button class="button enrol-primary" type="submit">Open Stripe test checkout {% icon 'arrow' %}</button>
-        {% elif mode == 'live' %}
-          <p>You’ll enter your card details on Stripe’s secure checkout page.</p>
-          <button class="button enrol-primary" type="submit">Pay {{ enrolment.total }} AUD {% icon 'arrow' %}</button>
-        {% else %}
-          <p class="enrol-alert">Checkout preview. You can try this step without entering card details.</p>
-          <button class="button enrol-primary" type="submit">Complete checkout preview {% icon 'arrow' %}</button>
-        {% endif %}
-      </form>
-    {% else %}
-      <p>Online payment is unavailable. Your enrolment is saved and awaiting payment.</p>
+    {% if enrolment.status != 'paid' %}
+      {% if test_complete %}
+        <p class="enrol-success" role="status">{% icon 'check' %} Test payment complete. No money was charged and no place was booked.</p>
+      {% elif preview_complete %}
+        <p class="enrol-success" role="status">{% icon 'check' %} Checkout preview complete. No money was charged and no place was booked.</p>
+      {% endif %}
+      {% if bank_available or card_available %}
+        <fieldset class="enrol-payment-methods">
+          <legend class="sr-only">Payment method</legend>
+          <div class="enrol-method-picker">
+            {% if bank_available %}
+              <label class="enrol-method-choice enrol-method-choice-bank">
+                <span class="enrol-method-icon">{% icon 'bank-transfer' %}</span>
+                <span class="enrol-method-label">Bank transfer <span class="enrol-payment-badge">Recommended</span></span>
+                <input type="radio" id="payment-bank" name="payment_choice" value="bank" autocomplete="off"{% if not card_selected %} checked{% endif %} aria-controls="transfer-details">
+              </label>
+            {% endif %}
+            {% if card_available %}
+              <label class="enrol-method-choice enrol-method-choice-card">
+                <span class="enrol-method-icon">{% icon 'payment-card' %}</span>
+                <span class="enrol-method-label">{% if mode %}Card payment{% else %}Checkout preview{% endif %}</span>
+                <input type="radio" id="payment-card" name="payment_choice" value="card" autocomplete="off"{% if card_selected %} checked{% endif %} aria-controls="card-details">
+              </label>
+            {% endif %}
+          </div>
+          {% if bank_available %}
+            <section class="enrol-method-panel enrol-method-panel-bank" id="transfer-details" aria-labelledby="bank-transfer-title">
+              <header class="enrol-transfer-header">
+                <h3 id="bank-transfer-title">Bank transfer details</h3>
+                {% if bank_details and enrolment.can_reconcile_bank_transfer %}
+                  <dl class="enrol-transfer-recipient">
+                    <div><dt>Account name</dt><dd>{{ bank_details.name }}</dd></div>
+                  </dl>
+                {% endif %}
+              </header>
+              <div class="enrol-transfer-body">
+                {% if bank_details and enrolment.can_reconcile_bank_transfer %}
+                  {% include "home/enrolment/bank_account_details.html" with bank_details=bank_details only %}
+                  {% include "home/enrolment/bank_payment_reference.html" with reference=enrolment.bank_transfer_reference only %}
+                  <span class="sr-only" role="status" data-transfer-copy-status></span>
+                {% elif bank_details %}
+                  <form method="post" class="enrol-form">
+                    {% csrf_token %}
+                    <button class="button enrol-primary" name="method" value="bank" type="submit">Choose bank transfer {% icon 'arrow' %}</button>
+                  </form>
+                {% else %}
+                  <p>Contact us for bank transfer details.</p>
+                {% endif %}
+              </div>
+            </section>
+          {% endif %}
+          {% if card_available %}
+            <section class="enrol-method-panel enrol-method-panel-card" id="card-details" aria-labelledby="card-payment-title">
+              <h3 id="card-payment-title">{% if mode %}Pay by card{% else %}Preview your checkout{% endif %}</h3>
+              {% if mode == 'test' %}<p>Use a test card to try the checkout.</p>{% endif %}
+              {% if embedded_key %}
+                <p role="status" data-card-status></p>
+                <div id="embedded-card-form" data-embedded-key="{{ embedded_key }}"></div>
+              {% endif %}
+              <form method="post" class="enrol-form" data-hosted-card>
+                {% csrf_token %}
+                {% if mode %}
+                  <button class="button enrol-primary" type="submit" name="method" value="card">Continue to card payment {% icon 'arrow' %}</button>
+                {% else %}
+                  <button class="button enrol-quiet" type="submit">Complete checkout preview {% icon 'arrow' %}</button>
+                {% endif %}
+              </form>
+            </section>
+          {% endif %}
+        </fieldset>
+      {% elif not test_complete and not preview_complete %}
+        <p>Payment is currently unavailable. Your enrolment is saved.</p>
+      {% endif %}
     {% endif %}
-    <a class="arrow-link enrol-secondary" href="{% url 'family_account' %}">View family account {% icon 'arrow' %}</a>
+    <footer class="enrol-checkout-footer">
+      <a class="arrow-link" href="{% url 'family_account' %}">{% icon 'arrow-left' %} Back to family account</a>
+      {% if enrolment.status != 'paid' and bank_available %}
+        <a class="enrol-bank-help" href="{% url 'contact' %}?program=general#enquiry">
+          {% icon 'message' %}<span>Get transfer help</span>
+        </a>
+      {% endif %}
+    </footer>
   </section>
 </div>
 {% endblock %}
