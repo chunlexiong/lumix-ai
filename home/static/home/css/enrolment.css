@@ -213,6 +213,49 @@
   margin-bottom: 17px;
 }
 
+.enrol-password-control {
+  position: relative;
+}
+
+.enrol-password-control input {
+  padding-right: 54px;
+}
+
+.enrol-password-toggle {
+  position: absolute;
+  top: 13px;
+  right: 7px;
+  display: grid;
+  width: 40px;
+  min-height: 40px;
+  place-items: center;
+  padding: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #51447a;
+  cursor: pointer;
+}
+
+.enrol-password-toggle:hover {
+  background: #f1edf8;
+}
+
+.enrol-password-toggle svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+}
+
+.enrol-password-slash {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.enrol-password-toggle.is-visible .enrol-password-slash {
+  opacity: 1;
+}
+
 .enrol-field select {
   text-overflow: ellipsis;
 }
