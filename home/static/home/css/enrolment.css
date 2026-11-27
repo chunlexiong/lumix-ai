@@ -786,23 +786,73 @@
 }
 
 .enrol-copy {
+  position: relative;
+  display: inline-grid;
+  flex: 0 0 44px;
+  place-items: center;
+  width: 44px;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 7px;
+  padding: 0;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: #205d57;
-  font: inherit;
-  font-size: .8125rem;
-  letter-spacing: normal;
   cursor: pointer;
+}
+
+.enrol-copy-icon,
+.enrol-copy-check {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.enrol-copy-check {
+  display: none;
+}
+
+.enrol-copy[data-copied="true"] .enrol-copy-icon {
+  display: none;
+}
+
+.enrol-copy[data-copied="true"] .enrol-copy-check {
+  display: block;
+}
+
+.enrol-copy::after {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #153b42;
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 3px);
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.enrol-copy:hover::after,
+.enrol-copy:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .enrol-copy:hover,
 .enrol-copy:focus-visible {
   background: #e2f3ee;
-  text-decoration: underline;
 }
 
 .enrol-copy[hidden] {

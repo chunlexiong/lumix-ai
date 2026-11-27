@@ -7,9 +7,12 @@ for (const button of document.querySelectorAll("[data-transfer-copy]")) {
 
   button.addEventListener("click", async () => {
     let feedback;
+    let copied = false;
+    const copyValue = button.dataset.copyValue || value.textContent.trim();
     try {
-      await navigator.clipboard.writeText(value.textContent.trim());
+      await navigator.clipboard.writeText(copyValue);
       feedback = "Copied";
+      copied = true;
     } catch {
       const selection = window.getSelection();
       const range = document.createRange();
@@ -19,11 +22,13 @@ for (const button of document.querySelectorAll("[data-transfer-copy]")) {
       feedback = "Selected";
     }
 
-    button.textContent = feedback;
+    button.dataset.copied = copied ? "true" : "false";
+    button.setAttribute("aria-label", `${copied ? "Copied" : "Select"} ${button.dataset.transferCopy}`);
     transferStatus.textContent = button.dataset.transferCopy + " " + feedback.toLowerCase() + ".";
     clearTimeout(resetTimer);
     resetTimer = setTimeout(() => {
-      button.textContent = "Copy";
+      button.dataset.copied = "false";
+      button.setAttribute("aria-label", `Copy ${button.dataset.transferCopy}`);
     }, 2200);
   });
 }

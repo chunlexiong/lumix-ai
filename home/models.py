@@ -259,3 +259,9 @@ class Enrolment(models.Model):
     @property
     def parent_email(self):
         return self.student.parent.email
+
+
+class BankTransferReferenceCounter(models.Model):
+    """Database sequence used to allocate non-random bank transfer references."""
+
+    created_at = models.DateTimeField(auto_now_add=True)

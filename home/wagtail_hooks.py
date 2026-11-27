@@ -87,6 +87,8 @@ class EnrolmentViewSet(ModelViewSet):
         "parent_email",
         "program_title",
         "class_title",
+        "schedule",
+        "bank_transfer_reference",
         "status",
         "total",
         "paid_at",

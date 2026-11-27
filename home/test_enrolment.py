@@ -196,7 +196,7 @@ class EnrolmentTests(TestCase):
         self.assertContains(page, reference)
         self.assertContains(page, "$240")
         self.assertNotContains(page, "Current method")
-        self.assertRegex(reference, r"^[1-9][0-9]{4}$")
+        self.assertEqual(reference, "1000001")
         self.assertEqual(enrolment.status, Enrolment.Status.PENDING)
         self.assertIsNone(enrolment.paid_at)
         self.assertContains(self.client.get(url), reference)
@@ -255,21 +255,18 @@ class EnrolmentTests(TestCase):
         STRIPE_WEBHOOK_SECRET="",
         STRIPE_CHECKOUT_ORIGIN="",
     )
-    def test_bank_reference_retries_a_collision_and_keeps_previous_references(self):
+    def test_bank_reference_counter_allocates_unique_references_and_keeps_previous_references(self):
         self.client.force_login(self.parent)
         existing = self.select_workshop()
         existing_url = reverse("enrolment_payment", args=[existing.pk])
-        with patch("home.enrolment_views.secrets.randbelow", return_value=42):
-            self.assertRedirects(self.client.post(existing_url, {"method": "bank"}), existing_url)
+        self.assertRedirects(self.client.post(existing_url, {"method": "bank"}), existing_url)
         existing.refresh_from_db()
-        self.assertEqual(existing.bank_transfer_reference, "10042")
+        self.assertEqual(existing.bank_transfer_reference, "1000001")
 
         payment = self.client.post(self.class_url, {"student": self.student.pk, "session": "jan-15"})
-        with patch("home.enrolment_views.secrets.randbelow", side_effect=[42, 38271]) as generate:
-            self.assertRedirects(self.client.post(payment.url, {"method": "bank"}), payment.url)
-        self.assertEqual(generate.call_count, 2)
+        self.assertRedirects(self.client.post(payment.url, {"method": "bank"}), payment.url)
         new = self.student.enrolments.get(session_key="jan-15")
-        self.assertEqual(new.bank_transfer_reference, "48271")
+        self.assertEqual(new.bank_transfer_reference, "1000002")
         self.assertEqual(new.status, Enrolment.Status.BANK_PENDING)
 
         legacy_reference = "LX1234567890ABCDEF"
@@ -277,10 +274,10 @@ class EnrolmentTests(TestCase):
         existing.save(update_fields=["previous_bank_transfer_reference"])
         self.assertRedirects(self.client.post(existing_url, {"method": "bank"}), existing_url)
         existing.refresh_from_db()
-        self.assertEqual(existing.bank_transfer_reference, "10042")
+        self.assertEqual(existing.bank_transfer_reference, "1000001")
         self.assertEqual(existing.previous_bank_transfer_reference, legacy_reference)
         page = self.client.get(existing_url)
-        self.assertContains(page, "10042")
+        self.assertContains(page, "1000001")
         self.assertNotContains(page, legacy_reference)
 
         operator = get_user_model().objects.create_user(username="bank-reference-reviewer")

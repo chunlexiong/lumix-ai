@@ -1,6 +1,5 @@
 import logging
 import re
-import secrets
 from datetime import timedelta
 from urllib.parse import urlencode, urlsplit
 
@@ -28,7 +27,7 @@ from .enrolment_forms import (
     FamilyLoginForm, FamilyPasswordResetForm, FamilyRegistrationForm,
     PasswordResetRequestForm, SelectClassForm, StudentForm, VerificationCodeForm,
 )
-from .models import EmailVerificationCode, Enrolment
+from .models import BankTransferReferenceCounter, EmailVerificationCode, Enrolment
 
 
 logger = logging.getLogger(__name__)
@@ -383,21 +382,29 @@ def payment_page(request, enrolment, *, error="", cancelled=False, status=200, h
 
 
 def assign_bank_transfer_reference(enrolment):
-    for attempt in range(10):
-        # Prefer five digits. Use the next range if the shorter codes are busy.
-        minimum = 10_000 if attempt < 5 else 100_000
-        reference = str(minimum + secrets.randbelow(9 * minimum))
+    while True:
+        # Start above the old five- and six-digit references. The database
+        # sequence gives each allocation a distinct increasing number.
+        allocation = BankTransferReferenceCounter.objects.create()
+        reference = str(1_000_000 + allocation.pk)
+        if (
+            Enrolment.objects.filter(bank_transfer_reference=reference).exists()
+            or Enrolment.objects.filter(previous_bank_transfer_reference=reference).exists()
+        ):
+            continue
+
         try:
             with transaction.atomic():
                 enrolment.bank_transfer_reference = reference
                 enrolment.save(update_fields=["bank_transfer_reference"])
         except IntegrityError:
-            if not Enrolment.objects.filter(bank_transfer_reference=reference).exists():
+            if not (
+                Enrolment.objects.filter(bank_transfer_reference=reference).exists()
+                or Enrolment.objects.filter(previous_bank_transfer_reference=reference).exists()
+            ):
                 raise
         else:
             return
-
-    raise CheckoutError("Could not allocate a bank transfer reference.")
 
 
 def start_bank_transfer(enrolment, mode):
