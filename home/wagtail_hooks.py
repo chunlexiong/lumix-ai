@@ -14,6 +14,7 @@ from wagtail.admin.viewsets.model import ModelViewSet
 
 from .checkout import CheckoutError, checkout_mode, prepare_bank_transfer
 from .models import Enrolment, StudentLifePage, StudentProjectPreview, StudentVideoPoster, project_url_hash
+from .payment_email import send_payment_confirmation_email
 from .project_screenshots import capture_project_screenshot
 from .video_posters import extract_video_poster, video_source_signature
 
@@ -48,9 +49,13 @@ class EnrolmentInspectView(InspectView):
                     messages.error(request, "A card payment already covers this enrolment. Check the bank deposit separately.")
                 else:
                     enrolment.status = Enrolment.Status.PAID
+                    enrolment.payment_method = Enrolment.PaymentMethod.BANK_TRANSFER
                     enrolment.paid_at = timezone.now()
-                    enrolment.save(update_fields=["status", "paid_at"])
-                    messages.success(request, "Bank transfer confirmed. The enrolment is now paid.")
+                    enrolment.save(update_fields=["status", "payment_method", "paid_at"])
+                    if send_payment_confirmation_email(enrolment):
+                        messages.success(request, "Bank transfer confirmed. The enrolment is now paid and a confirmation email was sent.")
+                    else:
+                        messages.warning(request, "Bank transfer confirmed and the enrolment is paid, but the confirmation email could not be sent.")
         except CheckoutError:
             messages.error(request, "The existing card checkout could not be closed. Check it before confirming the transfer.")
         return redirect(request.path)
@@ -76,10 +81,13 @@ class EnrolmentViewSet(ModelViewSet):
         "session_count",
         "total",
         "status",
+        "payment_method",
         "bank_transfer_reference",
         "stripe_mode",
         "created_at",
         "paid_at",
+        "payment_confirmation_sent_at",
+        "test_payment_confirmation_sent_at",
     ]
     list_display = [
         "created_at",
@@ -90,6 +98,7 @@ class EnrolmentViewSet(ModelViewSet):
         "schedule",
         "bank_transfer_reference",
         "status",
+        "payment_method",
         "total",
         "paid_at",
     ]

@@ -207,6 +207,10 @@ class Enrolment(models.Model):
         BANK_PENDING = "bank_pending", "Awaiting bank transfer"
         PAID = "paid", "Paid"
 
+    class PaymentMethod(models.TextChoices):
+        CARD = "card", "Card"
+        BANK_TRANSFER = "bank_transfer", "Bank transfer"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(Student, on_delete=models.PROTECT, related_name="enrolments")
     program_slug = models.SlugField()
@@ -218,6 +222,7 @@ class Enrolment(models.Model):
     session_count = models.PositiveSmallIntegerField()
     amount_cents = models.PositiveIntegerField()
     status = models.CharField(max_length=12, choices=Status, default=Status.PENDING)
+    payment_method = models.CharField(max_length=16, choices=PaymentMethod, blank=True)
     bank_transfer_reference = models.CharField(max_length=18, unique=True, null=True, blank=True)
     previous_bank_transfer_reference = models.CharField(
         max_length=18, unique=True, null=True, blank=True
@@ -227,6 +232,8 @@ class Enrolment(models.Model):
     checkout_revision = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
+    test_payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

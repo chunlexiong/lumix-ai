@@ -567,5 +567,12 @@ def stripe_webhook(request):
     with transaction.atomic():
         enrolment = Enrolment.objects.select_for_update().filter(stripe_session_id=session["id"]).first()
         if enrolment:
-            confirm_session(enrolment, session)
+            confirmed = confirm_session(enrolment, session)
+            sent_field = (
+                "test_payment_confirmation_sent_at"
+                if enrolment.status == Enrolment.Status.TESTED
+                else "payment_confirmation_sent_at"
+            )
+            if confirmed and not getattr(enrolment, sent_field):
+                return HttpResponse(status=500)
     return HttpResponse(status=200)

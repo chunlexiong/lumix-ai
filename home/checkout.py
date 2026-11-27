@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import Enrolment
+from .payment_email import send_payment_confirmation_email
 
 
 class CheckoutError(Exception):
@@ -113,11 +114,24 @@ def confirm_session(enrolment, session):
         return False
     if session.get("payment_status") != "paid" or session.get("status") != "complete":
         return False
+    if (
+        enrolment.status == Enrolment.Status.PAID
+        and enrolment.payment_method == Enrolment.PaymentMethod.BANK_TRANSFER
+    ):
+        return False
     status = Enrolment.Status.PAID if enrolment.stripe_mode == "live" else Enrolment.Status.TESTED
+    update_fields = []
     if enrolment.status not in {status, Enrolment.Status.PAID}:
         enrolment.status = status
         enrolment.paid_at = timezone.now()
-        enrolment.save(update_fields=["status", "paid_at"])
+        update_fields.extend(["status", "paid_at"])
+    if enrolment.payment_method != Enrolment.PaymentMethod.CARD:
+        enrolment.payment_method = Enrolment.PaymentMethod.CARD
+        update_fields.append("payment_method")
+    if update_fields:
+        enrolment.save(update_fields=update_fields)
+    if enrolment.status in {Enrolment.Status.PAID, Enrolment.Status.TESTED}:
+        send_payment_confirmation_email(enrolment)
     return True
 
 
